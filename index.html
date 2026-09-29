@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Násobilka se sovou</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E4F3FF; --grid:#CFE6FA; --ink:#23305C; --soft:#5A6790; --card:#FFFFFF; --edge:#23305C;
+  --on:#23305C;
+  --coral:#FF6B6B; --sun:#FFC93C; --mint:#2EC4A0; --grape:#8E6CEF; --blue:#3D8BFF; --orange:#FF9F43; --pink:#FF7EB6;
+  --l1:#FFD0D0; --l2:#FFEBA8; --l3:#BFF0DC; --empty:#F1F6FC;
+  --font:'Fredoka','Baloo 2','Trebuchet MS',system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#16203A; --grid:#1D2A4A; --ink:#EAF0FF; --soft:#AAB6DA; --card:#22305A; --edge:#0A0F20;
+    --l1:#7A3440; --l2:#7A6124; --l3:#1F6452; --empty:#1B2748;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16203A; --grid:#1D2A4A; --ink:#EAF0FF; --soft:#AAB6DA; --card:#22305A; --edge:#0A0F20;
+  --l1:#7A3440; --l2:#7A6124; --l3:#1F6452; --empty:#1B2748;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; font-family:var(--font); color:var(--ink); background-color:var(--bg);
+  background-image:linear-gradient(var(--grid) 2px,transparent 2px),linear-gradient(90deg,var(--grid) 2px,transparent 2px);
+  background-size:28px 28px; min-height:100vh; line-height:1.35; -webkit-tap-highlight-color:transparent;
+}
+.app{max-width:560px; margin:0 auto; padding:14px 14px 40px}
+[hidden]{display:none!important}
+p{margin:0}
+button{font-family:inherit; cursor:pointer}
+button:focus-visible,input:focus-visible{outline:4px solid var(--blue); outline-offset:3px}
+h2{font-size:1.3rem; font-weight:600; margin:0 0 10px}
+
+/* title */
+.title{font-size:clamp(2.6rem,12vw,3.6rem); font-weight:700; line-height:1; margin:0; letter-spacing:.01em}
+.title span{display:inline-block; -webkit-text-stroke:2px var(--edge); paint-order:stroke fill; text-shadow:0 4px 0 var(--edge)}
+.title span:nth-child(odd){transform:rotate(-4deg)}
+.title span:nth-child(even){transform:rotate(4deg) translateY(2px)}
+.hello{display:flex; align-items:flex-end; gap:10px; margin:14px 0 18px}
+.bubble{position:relative; background:var(--card); color:var(--ink); border:3px solid var(--edge); border-radius:18px; padding:10px 14px; font-size:1.15rem; font-weight:500; box-shadow:0 4px 0 var(--edge); flex:1}
+.bubble::before{content:""; position:absolute; left:-12px; bottom:18px; border:9px solid transparent; border-right-color:var(--edge)}
+.headrow{display:flex; justify-content:space-between; align-items:flex-start; gap:10px}
+
+/* cards */
+.block{background:var(--card); border:3px solid var(--edge); border-radius:20px; padding:14px; margin-bottom:16px; box-shadow:0 5px 0 var(--edge)}
+.chips{display:flex; flex-wrap:wrap; gap:8px}
+.chip{border:3px solid var(--edge); background:var(--card); color:var(--ink); border-radius:999px; padding:6px 16px; font-size:1.15rem; font-weight:600; box-shadow:0 3px 0 var(--edge)}
+.chip[aria-pressed="true"]{background:var(--sun); color:var(--on)}
+.chip:active{transform:translateY(2px); box-shadow:0 1px 0 var(--edge)}
+.rows .chip{min-width:56px; text-align:center; padding:6px 0}
+.rows .chip.all{padding:6px 16px}
+.namerow{display:flex; gap:8px; margin-top:10px}
+input{flex:1; min-width:0; font:inherit; font-size:1.2rem; padding:8px 14px; border:3px solid var(--edge); border-radius:14px; background:var(--empty); color:var(--ink)}
+.err{color:var(--coral); font-weight:600; margin-top:8px}
+.btn{border:3px solid var(--edge); border-radius:16px; font-weight:700; font-size:1.2rem; padding:10px 16px; box-shadow:0 5px 0 var(--edge); color:var(--on); background:var(--card)}
+.btn:active{transform:translateY(4px); box-shadow:0 1px 0 var(--edge)}
+.btn.ghost{background:var(--card); color:var(--ink)}
+.btn.go{background:var(--mint); color:var(--on)}
+.btn.yellow{background:var(--sun)}
+.big{display:block; width:100%; font-size:1.7rem; padding:14px}
+.modes{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.mode{text-align:left; border:3px solid var(--edge); background:var(--card); color:var(--ink); border-radius:16px; padding:10px 12px; box-shadow:0 4px 0 var(--edge)}
+.mode .em{font-size:1.8rem; line-height:1}
+.mode strong{display:block; font-size:1.25rem}
+.mode span.d{display:block; font-size:.95rem; line-height:1.2; opacity:.85}
+.mode[aria-pressed="true"]{background:var(--grape); color:#fff}
+.record{margin:0 0 14px}
+.rec-top{display:flex; align-items:center; justify-content:space-between; gap:10px}
+.rec-label{font-size:1rem; color:var(--soft)}
+.rec-num{font-size:3rem; font-weight:700; line-height:1}
+.sound{border:3px solid var(--edge); background:var(--card); color:var(--ink); border-radius:999px; padding:4px 12px; font-weight:600; font-size:1rem; box-shadow:0 3px 0 var(--edge); white-space:nowrap}
+
+/* map */
+.progress{height:18px; background:var(--empty); border:3px solid var(--edge); border-radius:99px; overflow:hidden; margin:8px 0 4px}
+.progress > div{height:100%; background:var(--mint); border-radius:99px; transition:width .6s}
+.map{display:grid; grid-template-columns:repeat(11,1fr); gap:3px; margin-top:12px}
+.mh,.mc{aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:clamp(.62rem,2.7vw,.9rem); border-radius:6px}
+.mh{font-weight:700; color:var(--soft)}
+.mc{background:var(--empty); color:var(--soft); font-weight:500}
+.mc.l1{background:var(--l1); color:var(--ink)}
+.mc.l2{background:var(--l2); color:var(--ink)}
+.mc.l3{background:var(--l3); color:var(--ink); font-weight:700}
+.legend{display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:10px; font-size:.95rem; color:var(--soft)}
+.legend i{display:inline-block; width:16px; height:16px; border-radius:5px; vertical-align:-3px; margin-right:5px}
+
+/* game */
+#game{display:flex; flex-direction:column; min-height:calc(100vh - 40px)}
+.hud{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+.pill{background:var(--card); border:3px solid var(--edge); border-radius:16px; text-align:center; padding:4px 2px; box-shadow:0 3px 0 var(--edge)}
+.pill .lab{display:block; font-size:.9rem; color:var(--soft)}
+.pill .val{font-size:1.7rem; font-weight:700; line-height:1.1}
+.timebar{height:16px; background:var(--card); border:3px solid var(--edge); border-radius:99px; margin-top:10px; overflow:hidden}
+.timefill{height:100%; width:100%; background:var(--blue)}
+.timefill.low{background:var(--coral)}
+.tag{align-self:center; margin-top:14px; background:var(--sun); color:var(--on); border:3px solid var(--edge); border-radius:99px; padding:2px 14px; font-weight:600; font-size:1.1rem; visibility:hidden}
+.tag.show{visibility:visible}
+.problem{font-weight:700; font-size:clamp(3.2rem,16vw,5.8rem); text-align:center; margin:6px 0 0; line-height:1.1; white-space:nowrap; font-variant-numeric:tabular-nums}
+.ans{display:inline-block; min-width:1.7em; border-bottom:7px solid var(--ink); border-radius:3px; text-align:center}
+.ans.ok{color:var(--mint); border-color:var(--mint)}
+.ans.bad{color:var(--coral); border-color:var(--coral); text-decoration:line-through; text-decoration-thickness:6px}
+.feedback{min-height:2.6em; text-align:center; font-size:1.7rem; font-weight:700; padding:6px 0}
+.feedback.ok{color:var(--mint)}
+.pad{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:auto}
+.key{border:3px solid var(--edge); border-radius:18px; font-size:2.1rem; font-weight:700; min-height:66px; box-shadow:0 5px 0 var(--edge); color:var(--on); touch-action:manipulation}
+.key:active{transform:translateY(4px); box-shadow:0 1px 0 var(--edge)}
+.key.del{background:#FFE0CC; font-size:1.6rem}
+.key.ok{background:var(--mint)}
+.link{background:none; border:0; color:var(--soft); font-size:1.05rem; margin:14px auto 0; text-decoration:underline; padding:6px}
+.pop{animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+
+/* explanation sheet */
+.shade{position:fixed; inset:0; background:rgba(20,30,60,.45); z-index:10}
+.sheet{position:fixed; left:0; right:0; bottom:0; z-index:11; max-width:560px; margin:0 auto; max-height:88vh; overflow-y:auto;
+  background:var(--card); color:var(--ink); border:4px solid var(--edge); border-bottom:0; border-radius:28px 28px 0 0;
+  padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px)); animation:up .35s cubic-bezier(.2,1.2,.4,1)}
+@keyframes up{0%{transform:translateY(100%)}100%{transform:translateY(0)}}
+.sheet .hello{margin:0 0 12px}
+.rule{background:var(--sun); color:var(--on); border:3px solid var(--edge); border-radius:16px; padding:10px 14px; font-size:1.3rem; font-weight:600; text-align:center; line-height:1.25}
+.dots-wrap{display:flex; flex-direction:column; align-items:center; margin:14px 0 4px}
+.dots{display:grid; gap:4px}
+.dot{width:clamp(14px,4.4vw,22px); aspect-ratio:1; border-radius:50%}
+.dot.a{background:var(--blue)}
+.dot.b{background:var(--orange)}
+.dot.f{background:var(--empty); border:2px dashed var(--soft)}
+.dot.x{background:var(--l1); position:relative}
+.dot.x::after{content:"✕"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--coral); font-weight:700; font-size:.8em}
+.dots-cap{font-size:1rem; color:var(--soft); margin-top:6px; text-align:center}
+.steps{display:flex; flex-direction:column; gap:8px; margin:12px 0}
+.step{display:flex; align-items:center; gap:10px; font-size:1.55rem; font-weight:600}
+.step .n{flex:0 0 36px; height:36px; border-radius:50%; background:var(--grape); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.1rem; border:3px solid var(--edge)}
+.result{text-align:center; font-size:2.6rem; font-weight:700; background:var(--l3); color:var(--ink); border:3px solid var(--edge); border-radius:18px; padding:6px; margin:4px 0 14px}
+
+/* results */
+.res-wrap{text-align:center; padding-top:6px}
+.stars{font-size:3.4rem; letter-spacing:4px; margin:4px 0}
+.stars span{display:inline-block; animation:pop .45s ease-out both}
+.stars span.off{filter:grayscale(1); opacity:.3}
+.stamp{display:inline-block; font-weight:700; font-size:2rem; color:var(--on); background:var(--sun); border:4px solid var(--edge); border-radius:20px; padding:6px 20px; transform:rotate(-5deg); box-shadow:0 5px 0 var(--edge); animation:stamp .55s cubic-bezier(.2,1.6,.4,1)}
+@keyframes stamp{0%{transform:rotate(-5deg) scale(2);opacity:0}100%{transform:rotate(-5deg) scale(1);opacity:1}}
+.res-note{font-size:1.3rem; color:var(--soft); margin:10px 0}
+.res-score{font-size:5rem; font-weight:700; line-height:1}
+.res-unit{color:var(--soft); font-size:1.15rem}
+.stats{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:18px 0}
+.stat{border:3px solid var(--edge); border-radius:16px; padding:8px 4px; box-shadow:0 3px 0 var(--edge); color:var(--on)}
+.stat b{display:block; font-size:1.9rem; line-height:1.1}
+.stat span{font-size:.95rem}
+.mist{text-align:left}
+.mist ul{list-style:none; padding:0; margin:6px 0 0; display:flex; flex-wrap:wrap; gap:8px}
+.mist li{background:var(--l2); color:var(--ink); border-radius:10px; padding:4px 12px; font-weight:600; font-size:1.2rem}
+.res-btns{display:grid; gap:12px; margin-top:16px}
+.confetti{position:fixed; top:-20px; width:12px; height:16px; border-radius:3px; z-index:20; pointer-events:none; animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+</head>
+<body>
+<main class="app">
+
+<section id="home">
+  <div class="headrow">
+    <h1 class="title" id="title" aria-label="Násobilka"></h1>
+    <button id="soundBtn" class="sound" aria-pressed="true">🔊 Zvuk</button>
+  </div>
+  <div class="hello"><div id="homeOwl"></div><div class="bubble" id="homeBubble"></div></div>
+
+  <div class="block">
+    <h2>Kdo hraje?</h2>
+    <div id="players" class="chips"></div>
+    <div class="namerow">
+      <input id="nameInput" placeholder="Napiš své jméno" maxlength="20" autocomplete="off" aria-label="Jméno hráče">
+      <button id="addPlayer" class="btn yellow">Přidat</button>
+    </div>
+    <p id="nameErr" class="err" hidden>Nejdřív napiš své jméno, ať se ti ukládají body.</p>
+  </div>
+
+  <div class="block">
+    <h2>Které řady?</h2>
+    <div id="rowChips" class="chips rows"></div>
+  </div>
+
+  <div class="block">
+    <h2>Jak chceš hrát?</h2>
+    <div class="modes">
+      <button class="mode" data-mode="trenink"><div class="em">🎯</div><strong>Trénink</strong><span class="d">20 příkladů, žádný spěch</span></button>
+      <button class="mode" data-mode="sprint"><div class="em">🏁</div><strong>Závod</strong><span class="d">Kolik zvládneš za 60 sekund?</span></button>
+    </div>
+  </div>
+
+  <div id="recordBox" class="block record"></div>
+  <button id="startBtn" class="btn go big">Hrajeme!</button>
+
+  <div class="block" style="margin-top:20px">
+    <h2>Moje tabulka</h2>
+    <p id="masteryCount"></p>
+    <div class="progress"><div id="masteryBar" style="width:0"></div></div>
+    <div id="map" class="map" aria-label="Tabulka násobilky podle toho, co už umíš"></div>
+    <div class="legend">
+      <span><i style="background:var(--empty);border:2px solid var(--soft)"></i>Ještě jsem nehrál/a</span>
+      <span><i style="background:var(--l1)"></i>Spletl/a jsem se</span>
+      <span><i style="background:var(--l2)"></i>Učím se</span>
+      <span><i style="background:var(--l3)"></i>Umím!</span>
+    </div>
+  </div>
+</section>
+
+<section id="game" hidden>
+  <div class="hud">
+    <div class="pill"><span class="lab" id="leftLab">⏱ Čas</span><span class="val" id="leftVal">60</span></div>
+    <div class="pill"><span class="lab">⭐ Body</span><span class="val" id="scoreVal">0</span></div>
+    <div class="pill"><span class="lab">🔥 Série</span><span class="val" id="streakVal">0</span></div>
+  </div>
+  <div class="timebar" id="timebar"><div class="timefill" id="timefill"></div></div>
+  <div class="tag" id="retryTag">Zkus to znovu sám/sama</div>
+  <div class="problem" aria-live="polite"><span id="qa">7</span> × <span id="qb">8</span> = <span id="qans" class="ans">&nbsp;</span></div>
+  <div id="feedback" class="feedback" aria-live="polite"></div>
+  <div class="pad" id="pad"></div>
+  <button id="quitBtn" class="link">Ukončit hru</button>
+</section>
+
+<section id="results" hidden>
+  <div class="res-wrap" id="resBody"></div>
+  <div class="res-btns" id="resBtns">
+    <button id="againBtn" class="btn go big">Hrát znovu</button>
+    <button id="homeBtn" class="btn ghost">Zpět na začátek</button>
+  </div>
+</section>
+
+</main>
+
+<div class="shade" id="shade" hidden></div>
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetBubble">
+  <div class="hello"><div id="sheetOwl"></div><div class="bubble" id="sheetBubble"></div></div>
+  <div class="rule" id="sheetRule"></div>
+  <div class="dots-wrap"><div class="dots" id="sheetDots"></div><div class="dots-cap" id="sheetCap"></div></div>
+  <div class="steps" id="sheetSteps"></div>
+  <div class="result" id="sheetResult"></div>
+  <button class="btn go big" id="sheetBtn">Zkusím to sám</button>
+</div>
+
+<script>
+const KEY='nasobilka-v1';
+const $=s=>document.querySelector(s);
+const ROWCOL=['#FF7EB6','#FF9F43','#FFC93C','#9BE15D','#2EC4A0','#5BC0F8','#3D8BFF','#8E6CEF','#C77DFF','#FF6B6B'];
+const KEYCOL=['#FFE3E3','#FFF1C2','#D6F5EA','#E3DBFF','#D9E9FF','#FFE0F0','#E5F8C8','#FFE8CC','#D8F3FF','#F0E3FF'];
+let data=load();
+let G=null;
+
+function load(){
+  try{const r=localStorage.getItem(KEY); if(r){const d=JSON.parse(r); if(d&&d.players) return d;}}catch(e){}
+  return {players:{},current:null,rows:[2,3,4,5,6,7,8,9,10],mode:'trenink',sound:true};
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data));}catch(e){}}
+function player(){
+  if(!data.current) return null;
+  if(!data.players[data.current]) data.players[data.current]={best:{},hist:{},facts:{}};
+  return data.players[data.current];
+}
+const rowsKey=()=>[...data.rows].sort((a,b)=>a-b).join(',');
+const factKey=(a,b)=>Math.min(a,b)+'x'+Math.max(a,b);
+function level(f){
+  if(!f) return 0;
+  if(f.s>=3 && f.t && f.t<6000) return 3;
+  if(f.s===0 && f.w>0) return 1;
+  return 2;
+}
+function rowsLabel(){
+  const r=[...data.rows].sort((a,b)=>a-b);
+  if(r.length===10) return 'všechny řady';
+  if(r.length===1) return 'řada ×'+r[0];
+  return 'řady '+r.join(', ');
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+/* ---------- owl mascot ---------- */
+function owl(s,mood){
+  const up=mood==='cheer', look=mood==='think'?-4:0;
+  const wingL=up?'<ellipse cx="16" cy="44" rx="8" ry="17" fill="#7457E0" transform="rotate(35 16 44)"/>':'<ellipse cx="18" cy="66" rx="8" ry="17" fill="#7457E0"/>';
+  const wingR=up?'<ellipse cx="84" cy="44" rx="8" ry="17" fill="#7457E0" transform="rotate(-35 84 44)"/>':'<ellipse cx="82" cy="66" rx="8" ry="17" fill="#7457E0"/>';
+  return `<svg width="${s}" height="${s}" viewBox="0 0 100 100" aria-hidden="true">
+  ${wingL}${wingR}
+  <path d="M22 36 L28 12 L44 28 Z" fill="#8E6CEF"/><path d="M78 36 L72 12 L56 28 Z" fill="#8E6CEF"/>
+  <ellipse cx="50" cy="60" rx="33" ry="35" fill="#8E6CEF"/>
+  <ellipse cx="50" cy="72" rx="20" ry="20" fill="#E3DBFF"/>
+  <path d="M40 66 q5 4 10 0 q5 4 10 0 M42 76 q4 3 8 0 q4 3 8 0" stroke="#B9A8F5" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <circle cx="36" cy="44" r="14" fill="#fff" stroke="#23305C" stroke-width="3"/><circle cx="64" cy="44" r="14" fill="#fff" stroke="#23305C" stroke-width="3"/>
+  <circle cx="38" cy="${46+look}" r="6" fill="#23305C"/><circle cx="62" cy="${46+look}" r="6" fill="#23305C"/>
+  <circle cx="40" cy="${44+look}" r="2" fill="#fff"/><circle cx="64" cy="${44+look}" r="2" fill="#fff"/>
+  <path d="M44 55 L56 55 L50 64 Z" fill="#FFB020" stroke="#23305C" stroke-width="2" stroke-linejoin="round"/>
+  <ellipse cx="40" cy="95" rx="7" ry="4" fill="#FFB020"/><ellipse cx="60" cy="95" rx="7" ry="4" fill="#FFB020"/>
+  </svg>`;
+}
+
+/* ---------- home ---------- */
+function renderTitle(){
+  const cols=['#FF6B6B','#FF9F43','#FFC93C','#2EC4A0','#3D8BFF','#8E6CEF','#FF7EB6','#2EC4A0','#FF9F43'];
+  $('#title').innerHTML=[...'Násobilka'].map((c,i)=>`<span style="color:${cols[i%cols.length]}" aria-hidden="true">${c}</span>`).join('');
+}
+function renderHello(){
+  $('#homeOwl').innerHTML=owl(78,'happy');
+  $('#homeBubble').textContent = data.current
+    ? `Ahoj, ${data.current}! Chyby nevadí, z každé se něco naučíš.`
+    : 'Ahoj! Jsem sova Mína a naučím tě násobilku. Jak se jmenuješ?';
+}
+function renderPlayers(){
+  const box=$('#players'); box.innerHTML='';
+  const names=Object.keys(data.players);
+  box.hidden=!names.length;
+  names.forEach(n=>{
+    const b=document.createElement('button');
+    b.className='chip'; b.textContent=n; b.setAttribute('aria-pressed',String(n===data.current));
+    b.onclick=()=>{data.current=n; save(); $('#nameErr').hidden=true; renderHome();};
+    box.appendChild(b);
+  });
+}
+function renderRows(){
+  const box=$('#rowChips'); box.innerHTML='';
+  for(let r=1;r<=10;r++){
+    const on=data.rows.includes(r);
+    const b=document.createElement('button');
+    b.className='chip'; b.textContent='×'+r; b.setAttribute('aria-pressed',String(on));
+    b.setAttribute('aria-label','Řada '+r);
+    if(on){b.style.background=ROWCOL[r-1]; b.style.color='#23305C';}
+    b.onclick=()=>{
+      if(data.rows.includes(r)){ if(data.rows.length>1) data.rows=data.rows.filter(x=>x!==r); }
+      else data.rows.push(r);
+      save(); renderRows(); renderRecord();
+    };
+    box.appendChild(b);
+  }
+  const all=document.createElement('button');
+  all.className='chip all'; all.textContent='Všechny';
+  all.setAttribute('aria-pressed',String(data.rows.length===10));
+  all.onclick=()=>{data.rows=[1,2,3,4,5,6,7,8,9,10]; save(); renderRows(); renderRecord();};
+  box.appendChild(all);
+}
+function renderModes(){
+  document.querySelectorAll('.mode').forEach(b=>{
+    b.setAttribute('aria-pressed',String(b.dataset.mode===data.mode));
+    b.onclick=()=>{data.mode=b.dataset.mode; save(); renderModes(); renderRecord();};
+  });
+}
+function spark(hist,best){
+  if(hist.length<2) return '';
+  const W=140,H=56,P=6, max=Math.max(best,1);
+  const pts=hist.map((v,i)=>[P+i*(W-2*P)/(hist.length-1), H-P-(v/max)*(H-2*P)]);
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-label="Posledních ${hist.length} závodů">
+    <line x1="${P}" x2="${W-P}" y1="${P}" y2="${P}" stroke="#FFC93C" stroke-dasharray="5 5" stroke-width="3"/>
+    <polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#3D8BFF" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+    ${pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="#3D8BFF"/>`).join('')}</svg>`;
+}
+function renderRecord(){
+  const box=$('#recordBox'), p=player();
+  if(data.mode==='trenink'){
+    box.innerHTML='<p><b>🎯 Trénink</b><br>Když se spleteš, sova Mína ti ukáže, jak na to, a pak to zkusíš znovu.</p>'; return;
+  }
+  if(!p){box.innerHTML='<p>Přidej své jméno, ať se ti ukládá rekord.</p>'; return;}
+  const k=rowsKey(), best=p.best[k], hist=(p.hist[k]||[]).slice(-10);
+  if(!best){box.innerHTML=`<p><b>🏁 Závod</b>, ${rowsLabel()}<br>Tady ještě nemáš rekord. Tvůj první závod bude hned rekord!</p>`; return;}
+  box.innerHTML=`<div class="rec-top"><div><div class="rec-label">🏆 Můj rekord, ${rowsLabel()}</div><div class="rec-num">${best}</div></div>${spark(hist,best)}</div>`;
+}
+function renderMap(){
+  const p=player(), f=p?p.facts:{};
+  let h='<div class="mh">×</div>';
+  for(let c=1;c<=10;c++) h+=`<div class="mh">${c}</div>`;
+  for(let r=1;r<=10;r++){
+    h+=`<div class="mh">${r}</div>`;
+    for(let c=1;c<=10;c++){
+      const L=level(f[factKey(r,c)]);
+      h+=`<div class="mc l${L}" title="${r} × ${c} = ${r*c}">${L?r*c:''}</div>`;
+    }
+  }
+  $('#map').innerHTML=h;
+  let known=0;
+  for(let a=1;a<=10;a++) for(let b=a;b<=10;b++) if(level(f[factKey(a,b)])===3) known++;
+  $('#masteryCount').textContent = `Umím ${known} z 55 příkladů. (3 × 7 a 7 × 3 je jeden příklad.)`;
+  $('#masteryBar').style.width=(known/55*100)+'%';
+}
+function renderSound(){
+  const b=$('#soundBtn'); b.setAttribute('aria-pressed',String(data.sound));
+  b.textContent=data.sound?'🔊 Zvuk':'🔇 Ticho';
+}
+function renderHome(){renderTitle(); renderHello(); renderPlayers(); renderRows(); renderModes(); renderRecord(); renderMap(); renderSound();}
+
+function addPlayer(){
+  const n=$('#nameInput').value.trim();
+  if(!n){$('#nameErr').hidden=false; $('#nameInput').focus(); return false;}
+  if(!data.players[n]) data.players[n]={best:{},hist:{},facts:{}};
+  data.current=n; $('#nameInput').value=''; $('#nameErr').hidden=true; save(); renderHome(); return true;
+}
+function show(id){['home','game','results'].forEach(s=>$('#'+s).hidden=s!==id); window.scrollTo(0,0);}
+
+/* ---------- sound ---------- */
+let ac;
+function beep(kind){
+  if(!data.sound) return;
+  try{
+    ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+    const t=ac.currentTime;
+    const notes = kind==='ok'?[660,990] : kind==='rec'?[523,659,784,1047] : [330,262];
+    notes.forEach((fr,i)=>{
+      const o=ac.createOscillator(), g=ac.createGain(), s=t+i*.09;
+      o.type='sine'; o.frequency.value=fr;
+      g.gain.setValueAtTime(.0001,s); g.gain.exponentialRampToValueAtTime(.13,s+.01); g.gain.exponentialRampToValueAtTime(.0001,s+.2);
+      o.connect(g); g.connect(ac.destination); o.start(s); o.stop(s+.25);
+    });
+  }catch(e){}
+}
+
+/* ---------- explanation ---------- */
+function explain(a,b){
+  const has=n=>a===n||b===n, other=n=>a===n?b:a;
+  const rep=(c,n)=>Array(n).fill(c);
+  let n,o,rule,cols,steps,cap;
+  if(has(1)){n=1;o=other(1); rule='Krát 1 se číslo vůbec nezmění.'; cols=['a']; steps=[`${o} × 1 = ${o}`]; cap=`${o} řad po 1 tečce`;}
+  else if(has(10)){n=10;o=other(10); rule='Krát 10: k číslu připiš nulu.'; cols=rep('a',10); steps=[`${o} → ${o}0`]; cap=`${o} řad po 10 tečkách`;}
+  else if(has(9)){n=9;o=other(9); rule='Krát 9: spočítej krát 10 a jednu řadu uber.'; cols=[...rep('a',9),'x'];
+    steps=[`${o} × 10 = ${o*10}`,`${o*10} − ${o} = ${o*9}`]; cap='Modré tečky platí, přeškrtnuté ubereš.';}
+  else if(has(5)){n=5;o=other(5); rule='Krát 5 je polovina z krát 10.'; cols=[...rep('a',5),...rep('f',5)];
+    steps=[`${o} × 10 = ${o*10}`,`Polovina z ${o*10} je ${o*5}`]; cap='Modrá je přesně polovina ze všech teček.';}
+  else if(has(2)){n=2;o=other(2); rule='Krát 2 znamená zdvojnásobit.'; cols=['a','b'];
+    steps=[`${o} + ${o} = ${o*2}`]; cap='Modrá a oranžová je stejně.';}
+  else if(has(4)){n=4;o=other(4); rule='Krát 4: zdvojnásob a pak ještě jednou.'; cols=['a','a','b','b'];
+    steps=[`${o} + ${o} = ${o*2}`,`${o*2} + ${o*2} = ${o*4}`]; cap='Modrá polovina a oranžová polovina jsou stejné.';}
+  else if(has(8)){n=8;o=other(8); rule='Krát 8: zdvojnásob třikrát za sebou.'; cols=[...rep('a',4),...rep('b',4)];
+    steps=[`${o} + ${o} = ${o*2}`,`${o*2} + ${o*2} = ${o*4}`,`${o*4} + ${o*4} = ${o*8}`]; cap='Modrá a oranžová jsou stejné, každá je krát 4.';}
+  else if(has(3)){n=3;o=other(3); rule='Krát 3 je krát 2 a ještě jednou navíc.'; cols=['a','a','b'];
+    steps=[`${o} × 2 = ${o*2}`,`${o*2} + ${o} = ${o*3}`]; cap='Modré je krát 2, oranžová je ta jedna navíc.';}
+  else if(has(6)){n=6;o=other(6); rule='Krát 6 je krát 5 a ještě jednou navíc.'; cols=[...rep('a',5),'b'];
+    steps=[`${o} × 5 = ${o*5}`,`${o*5} + ${o} = ${o*6}`]; cap='Modré je krát 5, oranžová je ta jedna navíc.';}
+  else {n=7;o=7; rule='Krát 7 rozděl na krát 5 a krát 2.'; cols=[...rep('a',5),'b','b'];
+    steps=['7 × 5 = 35','7 × 2 = 14','35 + 14 = 49']; cap='Modré je krát 5, oranžové krát 2.';}
+  return {n,o,rule,cols,steps,cap};
+}
+const CHEER=['Nevadí! Na chybách se učíme. Koukej:','To je v pohodě, tenhle je zrádný. Takhle na to:','Skoro! Ukážu ti fígl:','Chyba je jen nová věc k naučení. Pojď:'];
+function openSheet(kind){
+  const {a,b}=G.q, e=explain(a,b);
+  G.sheet=kind; G.paused=true; G.pauseStart=performance.now();
+  $('#sheetOwl').innerHTML=owl(66,'think');
+  $('#sheetBubble').textContent = kind==='learn' ? CHEER[Math.floor(Math.random()*CHEER.length)] : 'Ještě ne, ale nevzdávej to. Tenhle příklad ti brzy připomenu.';
+  $('#sheetRule').textContent=e.rule;
+  const d=$('#sheetDots');
+  d.style.gridTemplateColumns=`repeat(${e.cols.length},auto)`;
+  let h=''; for(let r=0;r<e.o;r++) for(const c of e.cols) h+=`<div class="dot ${c}"></div>`;
+  d.innerHTML=h;
+  $('#sheetCap').textContent=`${e.o} řad po ${e.n}. ${e.cap}`;
+  $('#sheetSteps').innerHTML=e.steps.map((s,i)=>`<div class="step"><span class="n">${i+1}</span><span>${esc(s)}</span></div>`).join('');
+  $('#sheetResult').textContent=`${a} × ${b} = ${a*b}`;
+  $('#sheetBtn').textContent = kind==='learn' ? 'Zkusím to sám' : 'Pokračovat';
+  $('#shade').hidden=false; $('#sheet').hidden=false; $('#sheet').scrollTop=0;
+  setTimeout(()=>$('#sheetBtn').focus(),50);
+}
+function closeSheet(){
+  $('#shade').hidden=true; $('#sheet').hidden=true;
+  if(G && G.paused){ G.t0+=performance.now()-G.pauseStart; G.paused=false; }
+}
+function sheetAction(){
+  if(!G||!G.sheet) return;
+  const kind=G.sheet; G.sheet=null; closeSheet();
+  if(kind==='learn'){
+    G.retry=true; G.input=''; G.locked=false; G.qStart=performance.now();
+    const ans=$('#qans'); ans.className='ans'; ans.innerHTML='&nbsp;';
+    $('#feedback').innerHTML=''; $('#retryTag').classList.add('show');
+  } else afterAnswer();
+}
+
+/* ---------- game ---------- */
+function buildPad(){
+  const keys=['1','2','3','4','5','6','7','8','9','del','0','ok'];
+  $('#pad').innerHTML=keys.map((k,i)=>{
+    if(k==='del') return '<button class="key del" data-k="del" aria-label="Smazat">⌫</button>';
+    if(k==='ok') return '<button class="key ok" data-k="ok">OK</button>';
+    return `<button class="key" data-k="${k}" style="background:${KEYCOL[+k]}">${k}</button>`;
+  }).join('');
+  $('#pad').addEventListener('click',e=>{
+    const b=e.target.closest('.key'); if(!b) return;
+    const k=b.dataset.k;
+    if(k==='del') del(); else if(k==='ok') submit(); else press(k);
+  });
+}
+function startGame(){
+  if(!data.current && !addPlayer()){ show('home'); $('#nameErr').hidden=false; $('#nameInput').focus(); return; }
+  G={mode:data.mode,score:0,streak:0,bestStreak:0,correct:0,wrong:0,learned:0,mistakes:[],count:0,total:20,
+     input:'',locked:false,retry:false,sheet:null,paused:false,last:null,timers:[],t0:performance.now(),dur:60000,done:false};
+  show('game');
+  $('#timebar').hidden=G.mode!=='sprint';
+  $('#leftLab').textContent=G.mode==='sprint'?'⏱ Čas':'🎯 Příklad';
+  $('#timefill').style.width='100%'; $('#timefill').classList.remove('low');
+  next();
+  if(G.mode==='sprint') requestAnimationFrame(tick);
+}
+function pick(){
+  const p=player(), pool=[];
+  data.rows.forEach(r=>{
+    for(let m=1;m<=10;m++){
+      const L=level(p.facts[factKey(r,m)]);
+      let w = L===1?6 : L===3?(G.mode==='trenink'?.5:1) : 3;
+      if(G.last && factKey(r,m)===factKey(G.last.a,G.last.b)) w=0;
+      pool.push({r,m,w});
+    }
+  });
+  let tot=pool.reduce((s,x)=>s+x.w,0);
+  if(!tot){pool.forEach(x=>x.w=1); tot=pool.length;}
+  let x=Math.random()*tot;
+  for(const it of pool){ x-=it.w; if(x<=0) return Math.random()<.5?{a:it.r,b:it.m}:{a:it.m,b:it.r}; }
+  const it=pool[pool.length-1]; return {a:it.r,b:it.m};
+}
+function next(){
+  if(!G||G.done) return;
+  G.q=pick(); G.last=G.q; G.input=''; G.locked=false; G.retry=false; G.qStart=performance.now();
+  $('#qa').textContent=G.q.a; $('#qb').textContent=G.q.b;
+  const ans=$('#qans'); ans.className='ans'; ans.innerHTML='&nbsp;';
+  const fb=$('#feedback'); fb.className='feedback'; fb.innerHTML='';
+  $('#retryTag').classList.remove('show');
+  updateHud();
+}
+function press(d){
+  if(!G||G.done||G.locked||G.sheet) return;
+  if(G.input.length>=3) return;
+  if(G.input==='0') G.input='';
+  G.input+=d; $('#qans').textContent=G.input;
+}
+function del(){
+  if(!G||G.done||G.locked||G.sheet) return;
+  G.input=G.input.slice(0,-1); $('#qans').innerHTML=G.input||'&nbsp;';
+}
+function later(fn,ms){G.timers.push(setTimeout(fn,ms));}
+function submit(){
+  if(!G||G.done||G.locked||G.sheet||G.input==='') return;
+  const {a,b}=G.q, val=parseInt(G.input,10), ok=val===a*b, dt=performance.now()-G.qStart;
+  const p=player(), k=factKey(a,b);
+  const f=p.facts[k]||(p.facts[k]={c:0,w:0,s:0,t:0});
+  const ans=$('#qans'), fb=$('#feedback');
+  G.locked=true;
+  if(!G.retry) G.count++;
+  if(ok){
+    let pts;
+    if(G.retry){ pts=5; G.learned++; fb.textContent=`+5 Super, teď už to víš!`; }
+    else{
+      f.c++; f.s++; f.t=f.t?Math.round(f.t*.6+dt*.4):Math.round(dt);
+      G.streak++; G.bestStreak=Math.max(G.bestStreak,G.streak); G.correct++;
+      pts=10+Math.min(G.streak-1,10)*2;
+      fb.textContent = G.streak>=5 ? `+${pts} Série ${G.streak}! 🔥` : `+${pts}`;
+    }
+    G.score+=pts;
+    ans.classList.add('ok'); fb.className='feedback ok pop';
+    beep('ok'); save(); updateHud();
+    later(afterAnswer,G.retry?900:(G.mode==='sprint'?350:600));
+  } else {
+    ans.classList.add('bad'); beep('bad');
+    if(!G.retry){
+      f.w++; f.s=0; G.wrong++; G.streak=0; G.mistakes.push({a,b});
+      save(); updateHud();
+      later(()=>openSheet('learn'),500);
+    } else {
+      later(()=>openSheet('reveal'),500);
+    }
+  }
+}
+function afterAnswer(){
+  if(!G||G.done) return;
+  if(G.mode==='trenink' && G.count>=G.total){endGame(); return;}
+  next();
+}
+function updateHud(){
+  $('#scoreVal').textContent=G.score;
+  $('#streakVal').textContent=G.streak;
+  if(G.mode==='trenink') $('#leftVal').textContent=`${Math.min(G.count+(G.locked?0:1),G.total)}/${G.total}`;
+}
+function tick(){
+  if(!G||G.done||G.mode!=='sprint') return;
+  if(G.paused){requestAnimationFrame(tick); return;}
+  const left=G.dur-(performance.now()-G.t0);
+  if(left<=0){$('#leftVal').textContent='0'; endGame(); return;}
+  $('#leftVal').textContent=Math.ceil(left/1000);
+  const fill=$('#timefill'); fill.style.width=(left/G.dur*100)+'%';
+  fill.classList.toggle('low',left<10000);
+  requestAnimationFrame(tick);
+}
+function confetti(){
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  for(let i=0;i<50;i++){
+    const c=document.createElement('div'); c.className='confetti';
+    c.style.left=Math.random()*100+'vw'; c.style.background=ROWCOL[i%ROWCOL.length];
+    c.style.animationDuration=(2+Math.random()*1.8)+'s'; c.style.animationDelay=(Math.random()*.6)+'s';
+    document.body.appendChild(c); setTimeout(()=>c.remove(),4500);
+  }
+}
+function starsHtml(n){return `<div class="stars" aria-label="${n} ze 3 hvězd">${[0,1,2].map(i=>`<span class="${i<n?'':'off'}" style="animation-delay:${i*.18}s">⭐</span>`).join('')}</div>`;}
+function weakRow(){
+  const cnt={};
+  G.mistakes.forEach(m=>[m.a,m.b].forEach(x=>{ if(data.rows.includes(x) && x!==1 && x!==10) cnt[x]=(cnt[x]||0)+1; }));
+  let best=null; Object.keys(cnt).forEach(x=>{ if(best===null||cnt[x]>cnt[best]||(cnt[x]===cnt[best]&&+x>+best)) best=x; });
+  return best?+best:null;
+}
+function endGame(){
+  if(!G||G.done) return;
+  G.done=true; G.timers.forEach(clearTimeout); closeSheet();
+  const p=player(); let html=''; let stars=1, isRec=false;
+  if(G.mode==='sprint'){
+    const k=rowsKey(), prev=p.best[k]||0;
+    (p.hist[k]=p.hist[k]||[]).push(G.score);
+    if(p.hist[k].length>30) p.hist[k]=p.hist[k].slice(-30);
+    isRec=G.score>prev && G.score>0;
+    if(isRec) p.best[k]=G.score;
+    stars = isRec||G.score===prev ? 3 : (G.score>=prev*.8 ? 2 : 1);
+    html+=`<div class="hello" style="justify-content:center">${owl(84,isRec?'cheer':'happy')}</div>`;
+    html+=starsHtml(stars);
+    if(isRec) html+=`<div class="stamp">Nový rekord!</div>`+(prev?`<p class="res-note">O ${G.score-prev} bodů víc než minule!</p>`:`<p class="res-note">Tvůj první rekord!</p>`);
+    else if(G.score===prev) html+=`<p class="res-note">Vyrovnal/a jsi svůj rekord!</p>`;
+    else html+=`<p class="res-note">Rekord je ${prev}. Chybí ti ${prev-G.score} bodů, příště to dáš!</p>`;
+    html+=`<div class="res-score">${G.score}</div><div class="res-unit">bodů, ${rowsLabel()}</div>`;
+  } else {
+    stars = G.correct>=17?3 : G.correct>=10?2 : 1;
+    html+=`<div class="hello" style="justify-content:center">${owl(84,stars===3?'cheer':'happy')}</div>`;
+    html+=starsHtml(stars)+`<p class="res-note">Trénink hotový!</p><div class="res-score">${G.correct}/${G.total}</div><div class="res-unit">hned napoprvé</div>`;
+  }
+  html+=`<div class="stats">
+    <div class="stat" style="background:var(--l3)"><b>${G.correct}</b><span>napoprvé</span></div>
+    <div class="stat" style="background:#E3DBFF"><b>${G.learned}</b><span>naučeno</span></div>
+    <div class="stat" style="background:#FFE0CC"><b>${G.bestStreak}</b><span>nejdelší série</span></div></div>`;
+  const seen=new Set(), list=[];
+  G.mistakes.forEach(m=>{const k=factKey(m.a,m.b); if(!seen.has(k)){seen.add(k); list.push(m);}});
+  if(list.length){
+    html+=`<div class="block mist"><h2>Tyhle si ještě procvičíme</h2><ul>${list.map(m=>`<li>${m.a} × ${m.b} = ${m.a*m.b}</li>`).join('')}</ul></div>`;
+  } else if(G.correct){
+    html+=`<div class="block mist"><h2>Ani jedna chyba! 🎉</h2><p>Zkus přidat další řadu, nebo si dej závod.</p></div>`;
+  }
+  const wr=weakRow();
+  if(wr && G.wrong>=3 && data.rows.length>1){
+    html+=`<div class="block mist" style="background:var(--l2)"><h2>Tip od sovy Míny</h2><p style="color:var(--ink)">Nejvíc chyb bylo v řadě ×${wr}. Potrénuj ji chvíli samotnou a pak se vrať.</p>
+      <button class="btn yellow" id="trainRow" style="margin-top:10px;width:100%">Trénovat řadu ×${wr}</button></div>`;
+  }
+  save();
+  $('#resBody').innerHTML=html;
+  show('results');
+  const tb=$('#trainRow'); if(tb) tb.onclick=()=>{data.rows=[wr]; data.mode='trenink'; save(); startGame();};
+  if(isRec){confetti(); beep('rec');}
+}
+
+/* ---------- events ---------- */
+$('#addPlayer').onclick=addPlayer;
+$('#nameInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault(); addPlayer();}});
+$('#startBtn').onclick=startGame;
+$('#againBtn').onclick=startGame;
+$('#homeBtn').onclick=()=>{renderHome(); show('home');};
+$('#quitBtn').onclick=()=>{if(G){G.done=true; G.timers.forEach(clearTimeout);} closeSheet(); renderHome(); show('home');};
+$('#soundBtn').onclick=()=>{data.sound=!data.sound; save(); renderSound();};
+$('#sheetBtn').onclick=sheetAction;
+document.addEventListener('keydown',e=>{
+  if($('#game').hidden||!G||G.done) return;
+  if(G.sheet){ if(e.key==='Enter'||e.key===' '){e.preventDefault(); sheetAction();} return; }
+  if(/^[0-9]$/.test(e.key)){press(e.key); e.preventDefault();}
+  else if(e.key==='Backspace'){del(); e.preventDefault();}
+  else if(e.key==='Enter'){submit(); e.preventDefault();}
+});
+buildPad();
+renderHome();
+</script>
+</body>
+</html>
