@@ -142,6 +142,26 @@ input{flex:1; min-width:0; font:inherit; font-size:1.2rem; padding:8px 14px; bor
 .step .n{flex:0 0 36px; height:36px; border-radius:50%; background:var(--grape); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.1rem; border:3px solid var(--edge)}
 .result{text-align:center; font-size:2.6rem; font-weight:700; background:var(--l3); color:var(--ink); border:3px solid var(--edge); border-radius:18px; padding:6px; margin:4px 0 14px}
 
+/* path */
+.path-sub{color:var(--soft); font-size:1.05rem; margin:-4px 0 12px}
+.path{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:14px}
+.stage{position:relative; border:3px solid var(--edge); border-radius:16px; background:var(--card); color:var(--ink); padding:8px 4px 6px; text-align:center; box-shadow:0 3px 0 var(--edge)}
+.stage .em{display:block; font-size:1.5rem; line-height:1.1}
+.stage strong{display:block; font-size:1.05rem; line-height:1.2}
+.stage small{display:block; font-size:.85rem; color:var(--soft); min-height:1.2em}
+.stage.done{background:var(--l3)}
+.stage.next{background:var(--sun); color:var(--on); animation:nudge 1.6s ease-in-out infinite}
+.stage.next small{color:var(--on)}
+.stage.locked{opacity:.5; box-shadow:none; cursor:not-allowed}
+.stage:active:not(.locked){transform:translateY(2px); box-shadow:0 1px 0 var(--edge)}
+@keyframes nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.free-h{margin:26px 0 4px}
+.free-sub{margin:0 0 10px}
+.les-kicker{font-weight:700; color:var(--soft); font-size:1.1rem; margin:4px 0 0}
+.les-new{margin-top:12px; font-size:1.1rem; color:var(--soft); text-align:center}
+.gamelinks{display:flex; justify-content:center; gap:18px}
+.gamelinks .link{margin:14px 0 0}
+
 /* results */
 .res-wrap{text-align:center; padding-top:6px}
 .stars{font-size:3.4rem; letter-spacing:4px; margin:4px 0}
@@ -185,6 +205,16 @@ input{flex:1; min-width:0; font:inherit; font-size:1.2rem; padding:8px 14px; bor
     <p id="nameErr" class="err" hidden>Nejdřív napiš své jméno, ať se ti ukládají body.</p>
   </div>
 
+  <div class="block pathblock">
+    <h2>🦉 Cesta násobilkou</h2>
+    <p class="path-sub">Od nejlehčích řad po ty nejtěžší. V každé lekci ti sova nejdřív ukáže fígl a pak si ho vyzkoušíš.</p>
+    <button id="pathGo" class="btn go big"></button>
+    <div id="pathList" class="path"></div>
+  </div>
+
+  <h2 class="free-h">Volné procvičování a závod</h2>
+  <p class="path-sub free-sub">Vyber si řady sám/sama, nebo si změř rychlost.</p>
+
   <div class="block">
     <h2>Které řady?</h2>
     <div id="rowChips" class="chips rows"></div>
@@ -199,7 +229,7 @@ input{flex:1; min-width:0; font:inherit; font-size:1.2rem; padding:8px 14px; bor
   </div>
 
   <div id="recordBox" class="block record"></div>
-  <button id="startBtn" class="btn go big">Hrajeme!</button>
+  <button id="startBtn" class="btn yellow big">Hrajeme!</button>
 
   <div class="block" style="margin-top:20px">
     <h2>Moje tabulka</h2>
@@ -216,6 +246,22 @@ input{flex:1; min-width:0; font:inherit; font-size:1.2rem; padding:8px 14px; bor
   </div>
 </section>
 
+<section id="lesson" hidden>
+  <p class="les-kicker" id="lesKicker"></p>
+  <div class="hello"><div id="lesOwl"></div><div class="bubble" id="lesBubble"></div></div>
+  <div class="block" id="lesCard">
+    <div class="rule" id="lesRule"></div>
+    <div id="lesEx">
+      <div class="dots-wrap"><div class="dots" id="lesDots"></div><div class="dots-cap" id="lesCap"></div></div>
+      <div class="steps" id="lesSteps"></div>
+      <div class="result" id="lesResult"></div>
+    </div>
+    <p class="les-new" id="lesNew"></p>
+  </div>
+  <button id="lesBtn" class="btn go big"></button>
+  <button id="lesBack" class="link">Zpět na cestu</button>
+</section>
+
 <section id="game" hidden>
   <div class="hud">
     <div class="pill"><span class="lab" id="leftLab">⏱ Čas</span><span class="val" id="leftVal">60</span></div>
@@ -227,12 +273,16 @@ input{flex:1; min-width:0; font:inherit; font-size:1.2rem; padding:8px 14px; bor
   <div class="problem" aria-live="polite"><span id="qa">7</span> × <span id="qb">8</span> = <span id="qans" class="ans">&nbsp;</span></div>
   <div id="feedback" class="feedback" aria-live="polite"></div>
   <div class="pad" id="pad"></div>
-  <button id="quitBtn" class="link">Ukončit hru</button>
+  <div class="gamelinks">
+    <button id="hintBtn" class="link">💡 Poradit</button>
+    <button id="quitBtn" class="link">Ukončit hru</button>
+  </div>
 </section>
 
 <section id="results" hidden>
   <div class="res-wrap" id="resBody"></div>
   <div class="res-btns" id="resBtns">
+    <button id="nextBtn" class="btn go big" hidden></button>
     <button id="againBtn" class="btn go big">Hrát znovu</button>
     <button id="homeBtn" class="btn ghost">Zpět na začátek</button>
   </div>
@@ -320,7 +370,10 @@ function renderTitle(){
 }
 function renderHello(){
   $('#homeOwl').innerHTML=owl(78,'happy');
-  $('#homeBubble').textContent = data.current
+  const fresh=data.current && !Object.keys(pathState(player())).length;
+  $('#homeBubble').textContent = fresh
+    ? `Ahoj, ${data.current}! Začneme cestou níž: od nejlehčích řad až po ty nejtěžší.`
+    : data.current
     ? `Ahoj, ${data.current}! Chyby nevadí, z každé se něco naučíš.`
     : 'Ahoj! Jsem sova Mína a naučím tě násobilku. Jak se jmenuješ?';
 }
@@ -402,7 +455,7 @@ function renderSound(){
   const b=$('#soundBtn'); b.setAttribute('aria-pressed',String(data.sound));
   b.textContent=data.sound?'🔊 Zvuk':'🔇 Ticho';
 }
-function renderHome(){renderTitle(); renderHello(); renderPlayers(); renderRows(); renderModes(); renderRecord(); renderMap(); renderSound();}
+function renderHome(){renderTitle(); renderHello(); renderPlayers(); renderPath(); renderRows(); renderModes(); renderRecord(); renderMap(); renderSound();}
 
 function addPlayer(){
   const n=$('#nameInput').value.trim();
@@ -410,7 +463,7 @@ function addPlayer(){
   if(!data.players[n]) data.players[n]={best:{},hist:{},facts:{}};
   data.current=n; $('#nameInput').value=''; $('#nameErr').hidden=true; save(); renderHome(); return true;
 }
-function show(id){['home','game','results'].forEach(s=>$('#'+s).hidden=s!==id); window.scrollTo(0,0);}
+function show(id){['home','lesson','game','results'].forEach(s=>$('#'+s).hidden=s!==id); window.scrollTo(0,0);}
 
 /* ---------- sound ---------- */
 let ac;
@@ -430,45 +483,57 @@ function beep(kind){
 }
 
 /* ---------- explanation ---------- */
-function explain(a,b){
-  const has=n=>a===n||b===n, other=n=>a===n?b:a;
-  const rep=(c,n)=>Array(n).fill(c);
-  let n,o,rule,cols,steps,cap;
-  if(has(1)){n=1;o=other(1); rule='Krát 1 se číslo vůbec nezmění.'; cols=['a']; steps=[`${o} × 1 = ${o}`]; cap=`${o} řad po 1 tečce`;}
-  else if(has(10)){n=10;o=other(10); rule='Krát 10: k číslu připiš nulu.'; cols=rep('a',10); steps=[`${o} → ${o}0`]; cap=`${o} řad po 10 tečkách`;}
-  else if(has(9)){n=9;o=other(9); rule='Krát 9: spočítej krát 10 a jednu řadu uber.'; cols=[...rep('a',9),'x'];
-    steps=[`${o} × 10 = ${o*10}`,`${o*10} − ${o} = ${o*9}`]; cap='Modré tečky platí, přeškrtnuté ubereš.';}
-  else if(has(5)){n=5;o=other(5); rule='Krát 5 je polovina z krát 10.'; cols=[...rep('a',5),...rep('f',5)];
-    steps=[`${o} × 10 = ${o*10}`,`Polovina z ${o*10} je ${o*5}`]; cap='Modrá je přesně polovina ze všech teček.';}
-  else if(has(2)){n=2;o=other(2); rule='Krát 2 znamená zdvojnásobit.'; cols=['a','b'];
-    steps=[`${o} + ${o} = ${o*2}`]; cap='Modrá a oranžová je stejně.';}
-  else if(has(4)){n=4;o=other(4); rule='Krát 4: zdvojnásob a pak ještě jednou.'; cols=['a','a','b','b'];
-    steps=[`${o} + ${o} = ${o*2}`,`${o*2} + ${o*2} = ${o*4}`]; cap='Modrá polovina a oranžová polovina jsou stejné.';}
-  else if(has(8)){n=8;o=other(8); rule='Krát 8: zdvojnásob třikrát za sebou.'; cols=[...rep('a',4),...rep('b',4)];
-    steps=[`${o} + ${o} = ${o*2}`,`${o*2} + ${o*2} = ${o*4}`,`${o*4} + ${o*4} = ${o*8}`]; cap='Modrá a oranžová jsou stejné, každá je krát 4.';}
-  else if(has(3)){n=3;o=other(3); rule='Krát 3 je krát 2 a ještě jednou navíc.'; cols=['a','a','b'];
-    steps=[`${o} × 2 = ${o*2}`,`${o*2} + ${o} = ${o*3}`]; cap='Modré je krát 2, oranžová je ta jedna navíc.';}
-  else if(has(6)){n=6;o=other(6); rule='Krát 6 je krát 5 a ještě jednou navíc.'; cols=[...rep('a',5),'b'];
-    steps=[`${o} × 5 = ${o*5}`,`${o*5} + ${o} = ${o*6}`]; cap='Modré je krát 5, oranžová je ta jedna navíc.';}
-  else {n=7;o=7; rule='Krát 7 rozděl na krát 5 a krát 2.'; cols=[...rep('a',5),'b','b'];
-    steps=['7 × 5 = 35','7 × 2 = 14','35 + 14 = 49']; cap='Modré je krát 5, oranžové krát 2.';}
+/* Pořadí, ve kterém se u příkladu hledá strategie; force vynutí strategii řady, kterou se právě učíme. */
+const ORDER=[1,10,9,5,2,4,8,3,6,7];
+const rad=n=>n===1?'řada':n<5?'řady':'řad';
+function explain(a,b,force){
+  const n=(force&&(a===force||b===force))?force:ORDER.find(x=>a===x||b===x);
+  const o=a===n?b:a, rep=(c,k)=>Array(k).fill(c);
+  let rule,cols,steps,cap;
+  switch(n){
+    case 1: rule='Krát 1 se číslo vůbec nezmění.'; cols=['a']; steps=[`${o} × 1 = ${o}`]; cap='Každá řada má jen jednu tečku.'; break;
+    case 10: rule='Krát 10: k číslu připiš nulu.'; cols=rep('a',10); steps=[`${o} → ${o}0`]; cap='Každá řada má deset teček.'; break;
+    case 9: rule='Krát 9: spočítej krát 10 a jednu řadu uber.'; cols=[...rep('a',9),'x'];
+      steps=[`${o} × 10 = ${o*10}`,`${o*10} − ${o} = ${o*9}`]; cap='Modré tečky platí, přeškrtnuté ubereš.'; break;
+    case 5: rule='Krát 5 je polovina z krát 10.'; cols=[...rep('a',5),...rep('f',5)];
+      steps=[`${o} × 10 = ${o*10}`,`Polovina z ${o*10} je ${o*5}`]; cap='Modrá je přesně polovina ze všech teček.'; break;
+    case 2: rule='Krát 2 znamená zdvojnásobit.'; cols=['a','b'];
+      steps=[`${o} + ${o} = ${o*2}`]; cap='Modrá a oranžová je stejně.'; break;
+    case 4: rule='Krát 4: zdvojnásob a pak ještě jednou.'; cols=['a','a','b','b'];
+      steps=[`${o} + ${o} = ${o*2}`,`${o*2} + ${o*2} = ${o*4}`]; cap='Modrá polovina a oranžová polovina jsou stejné.'; break;
+    case 8: rule='Krát 8: zdvojnásob třikrát za sebou.'; cols=[...rep('a',4),...rep('b',4)];
+      steps=[`${o} + ${o} = ${o*2}`,`${o*2} + ${o*2} = ${o*4}`,`${o*4} + ${o*4} = ${o*8}`]; cap='Modrá a oranžová jsou stejné, každá je krát 4.'; break;
+    case 3: rule='Krát 3 je krát 2 a ještě jednou navíc.'; cols=['a','a','b'];
+      steps=[`${o} × 2 = ${o*2}`,`${o*2} + ${o} = ${o*3}`]; cap='Modré je krát 2, oranžová je ta jedna navíc.'; break;
+    case 6: rule='Krát 6 je krát 5 a ještě jednou navíc.'; cols=[...rep('a',5),'b'];
+      steps=[`${o} × 5 = ${o*5}`,`${o*5} + ${o} = ${o*6}`]; cap='Modré je krát 5, oranžová je ta jedna navíc.'; break;
+    default: rule='Krát 7 rozděl na krát 5 a krát 2.'; cols=[...rep('a',5),'b','b'];
+      steps=[`${o} × 5 = ${o*5}`,`${o} × 2 = ${o*2}`,`${o*5} + ${o*2} = ${o*7}`]; cap='Modré je krát 5, oranžové krát 2.';
+  }
   return {n,o,rule,cols,steps,cap};
 }
-const CHEER=['Nevadí! Na chybách se učíme. Koukej:','To je v pohodě, tenhle je zrádný. Takhle na to:','Skoro! Ukážu ti fígl:','Chyba je jen nová věc k naučení. Pojď:'];
-function openSheet(kind){
-  const {a,b}=G.q, e=explain(a,b);
-  G.sheet=kind; G.paused=true; G.pauseStart=performance.now();
-  $('#sheetOwl').innerHTML=owl(66,'think');
-  $('#sheetBubble').textContent = kind==='learn' ? CHEER[Math.floor(Math.random()*CHEER.length)] : 'Ještě ne, ale nevzdávej to. Tenhle příklad ti brzy připomenu.';
-  $('#sheetRule').textContent=e.rule;
-  const d=$('#sheetDots');
+/* Vykreslí vysvětlení do prvků s prefixem (sheet…, les…). hint = bez výsledku, poslední krok dopočítá dítě. */
+function paintExplain(px,e,a,b,hint){
+  $('#'+px+'Rule').textContent=e.rule;
+  const d=$('#'+px+'Dots');
   d.style.gridTemplateColumns=`repeat(${e.cols.length},auto)`;
   let h=''; for(let r=0;r<e.o;r++) for(const c of e.cols) h+=`<div class="dot ${c}"></div>`;
   d.innerHTML=h;
-  $('#sheetCap').textContent=`${e.o} řad po ${e.n}. ${e.cap}`;
-  $('#sheetSteps').innerHTML=e.steps.map((s,i)=>`<div class="step"><span class="n">${i+1}</span><span>${esc(s)}</span></div>`).join('');
-  $('#sheetResult').textContent=`${a} × ${b} = ${a*b}`;
-  $('#sheetBtn').textContent = kind==='learn' ? 'Jasně! Za chvilku to dám sám/sama' : 'Pokračovat';
+  $('#'+px+'Cap').textContent=`${e.o} ${rad(e.o)} po ${e.n}. ${e.cap}`;
+  const steps=hint?e.steps.map((s,i)=>i===e.steps.length-1?s.replace(/(=|→|je) [^=→]*$/,'$1 ?'):s):e.steps;
+  $('#'+px+'Steps').innerHTML=steps.map((s,i)=>`<div class="step"><span class="n">${i+1}</span><span>${esc(s)}</span></div>`).join('');
+  const res=$('#'+px+'Result'); res.hidden=hint; res.textContent=`${a} × ${b} = ${a*b}`;
+}
+const CHEER=['Nevadí! Na chybách se učíme. Koukej:','To je v pohodě, tenhle je zrádný. Takhle na to:','Skoro! Ukážu ti fígl:','Chyba je jen nová věc k naučení. Pojď:'];
+function openSheet(kind){
+  const {a,b}=G.q, e=explain(a,b,G.focus);
+  G.sheet=kind; G.paused=true; G.pauseStart=performance.now();
+  $('#sheetOwl').innerHTML=owl(66,'think');
+  $('#sheetBubble').textContent = kind==='learn' ? CHEER[Math.floor(Math.random()*CHEER.length)]
+    : kind==='hint' ? 'Tady je fígl. Výsledek už dopočítáš sám/sama:'
+    : 'Ještě ne, ale nevzdávej to. Tenhle příklad ti brzy připomenu.';
+  paintExplain('sheet',e,a,b,kind==='hint');
+  $('#sheetBtn').textContent = kind==='learn' ? 'Jasně! Za chvilku to dám sám/sama' : kind==='hint' ? 'Zkusím to' : 'Pokračovat';
   $('#shade').hidden=false; $('#sheet').hidden=false; $('#sheet').scrollTop=0;
   setTimeout(()=>$('#sheetBtn').focus(),50);
 }
@@ -478,13 +543,98 @@ function closeSheet(){
 }
 function sheetAction(){
   if(!G||!G.sheet) return;
-  G.sheet=null; closeSheet();
-  afterAnswer();
+  const kind=G.sheet; G.sheet=null; closeSheet();
+  if(kind!=='hint') afterAnswer();
+}
+function hint(){
+  if(!G||G.done||G.locked||G.sheet||G.mode==='sprint') return;
+  G.hinted=true; openSheet('hint');
 }
 /* Po chybě se příklad nevrací hned (to by bylo opisování z krátkodobé paměti),
    ale za 3–5 příkladů, kdy si ho dítě musí opravdu vybavit. Nejvýš dvakrát. */
 function requeue(a,b,tries){
   G.requeue.push({a,b,tries,at:G.count+3+Math.floor(Math.random()*3)});
+}
+
+/* ---------- cesta násobilkou ---------- */
+/* Pořadí podle odvozovacích strategií: nejdřív kotevní řady 1, 10, 2, 5; z nich se odvodí
+   3 a 4 (ze zdvojování), 9 (z desítky), 6 (z pětky), 8 (ze čtyřky). Na ×7 zbývá jediný nový příklad. */
+const PATH=[
+  {id:'r1-10',rows:[1,10],title:'×1 a ×10',em:'🌱'},
+  {id:'r2',rows:[2],title:'×2',em:'👯'},
+  {id:'r5',rows:[5],title:'×5',em:'✋'},
+  {id:'o1',review:true,rows:[1,2,5,10],title:'Opakování',em:'🔁'},
+  {id:'r3',rows:[3],title:'×3',em:'🍀'},
+  {id:'r4',rows:[4],title:'×4',em:'🐾'},
+  {id:'r9',rows:[9],title:'×9',em:'🎈'},
+  {id:'o2',review:true,rows:[1,2,3,4,5,9,10],title:'Opakování',em:'🔁'},
+  {id:'r6',rows:[6],title:'×6',em:'🐝'},
+  {id:'r8',rows:[8],title:'×8',em:'🐙'},
+  {id:'r7',rows:[7],title:'×7',em:'🌈'},
+  {id:'fin',review:true,rows:[1,2,3,4,5,6,7,8,9,10],title:'Velké finále',em:'🏆'}
+];
+const EX={1:[6],10:[4],2:[7,4],5:[6,3],3:[4,7],4:[3,6],9:[4,7],6:[4,7],8:[3,6],7:[7,4]};
+const LES_N=12, REV_N=20, PASS=.8;
+const need=st=>Math.ceil((st.review?REV_N:LES_N)*PASS);   // 10 z 12, 16 z 20
+const pathState=p=>(p&&p.path)||{};
+function stageIdx(p){const s=pathState(p), i=PATH.findIndex(st=>!(s[st.id]&&s[st.id].done)); return i<0?PATH.length:i;}
+function covered(rows){const set=new Set(); rows.forEach(r=>{for(let m=1;m<=10;m++) set.add(factKey(r,m));}); return set;}
+const rowsUpTo=i=>[...new Set(PATH.slice(0,i).filter(s=>!s.review).flatMap(s=>s.rows))];
+function newFacts(i){const before=covered(rowsUpTo(i)); return [...covered(PATH[i].rows)].filter(k=>!before.has(k)).length;}
+
+function renderPath(){
+  const p=player(), s=pathState(p), cur=stageIdx(p);
+  $('#pathList').innerHTML=PATH.map((st,i)=>{
+    const r=s[st.id], done=r&&r.done;
+    const cls=done?'done':i===cur?'next':i>cur?'locked':'';
+    const sub=done?'⭐'.repeat(r.stars||1):i===cur?'teď':'🔒';
+    return `<button class="stage ${cls}" data-i="${i}"${i>cur?' aria-disabled="true"':''} aria-label="Lekce ${i+1}: ${st.title}"><span class="em">${st.em}</span><strong>${st.title}</strong><small>${sub}</small></button>`;
+  }).join('');
+  $('#pathList').querySelectorAll('.stage').forEach(b=>b.onclick=()=>{const i=+b.dataset.i; if(i<=cur) openLesson(i);});
+  const go=$('#pathGo');
+  if(cur>=PATH.length){go.textContent='🏆 Cesta hotová! Dát si finále znovu'; go.onclick=()=>openLesson(PATH.length-1);}
+  else{go.textContent=(Object.keys(s).length?'Pokračovat: ':'Začít: ')+PATH[cur].title+' '+PATH[cur].em; go.onclick=()=>openLesson(cur);}
+}
+
+let L=null;
+function openLesson(i){
+  if(!data.current && !addPlayer()){ window.scrollTo(0,0); return; }
+  const st=PATH[i];
+  L={i,step:0,ex:st.review?[]:st.rows.length>1?st.rows.map(r=>[EX[r][0],r]):EX[st.rows[0]].map(o=>[o,st.rows[0]])};
+  $('#lesKicker').textContent=`Lekce ${i+1} z ${PATH.length}`;
+  $('#lesOwl').innerHTML=owl(72,'happy');
+  if(st.review){
+    $('#lesBubble').textContent = st.id==='fin'
+      ? 'Velké finále! Namíchám ti příklady ze všech řad. Ukaž, co všechno už umíš.'
+      : `Opakování! Namíchám ti příklady z řad ${st.rows.join(', ')}. Když si nevíš rady, klepni na 💡.`;
+    $('#lesRule').textContent=`Na splnění potřebuješ aspoň ${need(st)} z ${REV_N} napoprvé.`;
+    $('#lesEx').hidden=true; $('#lesNew').textContent='';
+    $('#lesBtn').textContent='Jdu na to!';
+  } else { $('#lesEx').hidden=false; paintLessonEx(); }
+  show('lesson');
+}
+function paintLessonEx(){
+  const st=PATH[L.i], [o,r]=L.ex[L.step], e=explain(o,r,r);
+  $('#lesBubble').textContent = L.step===0
+    ? `Dnes se naučíme ${st.rows.length>1?'řady':'řadu'} ${st.title}. Ukážu ti fígl:`
+    : 'A ještě jeden příklad, ať to máš v malíčku:';
+  paintExplain('les',e,o,r,false);
+  const nf=newFacts(L.i), tot=covered(rowsUpTo(L.i+1)).size;
+  $('#lesNew').textContent =
+    (L.i===0?'':nf===1?'Nový je tu jen jediný příklad, ostatní už znáš (3 × 7 je totéž co 7 × 3). '
+      :`Nových příkladů je tu jen ${nf}, ostatní už znáš (3 × 7 je totéž co 7 × 3). `)
+    + (tot===55?'Pak budeš umět celou násobilku!':`Pak budeš znát ${tot} z 55 příkladů.`);
+  $('#lesBtn').textContent = L.step>=L.ex.length-1 ? 'Jdu to zkusit!' : 'Další příklad →';
+}
+function lessonNext(){
+  const st=PATH[L.i];
+  if(st.review||L.step>=L.ex.length-1) startLesson(L.i);
+  else{L.step++; paintLessonEx(); window.scrollTo(0,0);}
+}
+function startLesson(i){
+  const st=PATH[i];
+  startGame({mode:'lekce',stage:i,rows:st.rows,prev:st.review?[]:rowsUpTo(i),
+    focus:!st.review&&st.rows.length===1?st.rows[0]:null,total:st.review?REV_N:LES_N});
 }
 
 /* ---------- game ---------- */
@@ -501,23 +651,29 @@ function buildPad(){
     if(k==='del') del(); else if(k==='ok') submit(); else press(k);
   });
 }
-function startGame(){
+/* opts: {mode:'trenink'|'sprint'|'lekce', rows, prev (dřívější řady na prokládání), focus (řada lekce), stage, total} */
+function startGame(opts){
   if(!data.current && !addPlayer()){ show('home'); $('#nameErr').hidden=false; $('#nameInput').focus(); return; }
-  G={mode:data.mode,score:0,streak:0,bestStreak:0,correct:0,wrong:0,learned:0,mistakes:[],count:0,total:20,
-     input:'',locked:false,retry:false,tries:0,requeue:[],sheet:null,paused:false,last:null,timers:[],t0:performance.now(),dur:60000,done:false};
+  opts=opts||{mode:data.mode,rows:[...data.rows]};
+  G={mode:opts.mode,rows:opts.rows,prev:opts.prev||[],focus:opts.focus||null,stage:opts.stage,opts,
+     score:0,streak:0,bestStreak:0,correct:0,wrong:0,learned:0,mistakes:[],count:0,total:opts.total||20,
+     input:'',locked:false,retry:false,hinted:false,tries:0,requeue:[],sheet:null,paused:false,last:null,timers:[],t0:performance.now(),dur:60000,done:false};
   show('game');
   $('#timebar').hidden=G.mode!=='sprint';
-  $('#leftLab').textContent=G.mode==='sprint'?'⏱ Čas':'🎯 Příklad';
+  $('#hintBtn').hidden=G.mode==='sprint';
+  $('#leftLab').textContent=G.mode==='sprint'?'⏱ Čas':G.mode==='lekce'?'📘 Příklad':'🎯 Příklad';
   $('#timefill').style.width='100%'; $('#timefill').classList.remove('low');
   next();
   if(G.mode==='sprint') requestAnimationFrame(tick);
 }
 function pick(){
   const p=player(), pool=[];
-  data.rows.forEach(r=>{
+  // v lekci je čtvrtina příkladů z dřívějších řad (prokládání)
+  const rows=G.prev.length&&Math.random()<.25?G.prev:G.rows;
+  rows.forEach(r=>{
     for(let m=1;m<=10;m++){
       const k=factKey(r,m), f=p.facts[k], L=level(f), due=isDue(f);
-      let w = L===1?6 : L===0?3 : L===3?(due?3:(G.mode==='trenink'?.5:1)) : (due?4:3);
+      let w = L===1?6 : L===0?3 : L===3?(due?3:(G.mode==='sprint'?1:.5)) : (due?4:3);
       if(G.last && k===factKey(G.last.a,G.last.b)) w=0;
       if(G.requeue.some(q=>factKey(q.a,q.b)===k)) w=0;
       pool.push({r,m,w});
@@ -535,7 +691,7 @@ function next(){
   let retry=false;
   if(i>=0){ const r=G.requeue.splice(i,1)[0]; G.q={a:r.a,b:r.b}; G.tries=r.tries; retry=true; }
   else G.q=pick();
-  G.last=G.q; G.input=''; G.locked=false; G.retry=retry; G.qStart=performance.now();
+  G.last=G.q; G.input=''; G.locked=false; G.retry=retry; G.hinted=false; G.qStart=performance.now();
   $('#qa').textContent=G.q.a; $('#qb').textContent=G.q.b;
   const ans=$('#qans'); ans.className='ans'; ans.innerHTML='&nbsp;';
   const fb=$('#feedback'); fb.className='feedback'; fb.innerHTML='';
@@ -564,6 +720,7 @@ function submit(){
   if(ok){
     let pts;
     if(G.retry){ pts=5; G.learned++; f.c++; f.s++; fb.textContent=`+5 Super, zapamatoval/a sis to!`; }
+    else if(G.hinted){ pts=5; G.learned++; fb.textContent=`+5 S nápovědou, výborně!`; }
     else{
       if(!f.box || since(f)>=IV[f.box]) f.box=Math.min((f.box||0)+1,5);
       f.last=Date.now();
@@ -575,7 +732,7 @@ function submit(){
     G.score+=pts;
     ans.classList.add('ok'); fb.className='feedback ok pop';
     beep('ok'); save(); updateHud();
-    later(afterAnswer,G.retry?900:(G.mode==='sprint'?350:600));
+    later(afterAnswer,G.retry||G.hinted?900:(G.mode==='sprint'?350:600));
   } else {
     ans.classList.add('bad'); beep('bad');
     f.w++; f.s=0; f.box=0; G.streak=0;
@@ -592,16 +749,16 @@ function submit(){
 }
 function afterAnswer(){
   if(!G||G.done) return;
-  if(G.mode==='trenink' && G.count>=G.total){
+  if(G.mode!=='sprint' && G.count>=G.total){
     if(!G.requeue.length){endGame(); return;}
-    G.requeue.forEach(r=>r.at=0);   // na konci tréninku dojet rozpracované opravy
+    G.requeue.forEach(r=>r.at=0);   // na konci dojet rozpracované opravy
   }
   next();
 }
 function updateHud(){
   $('#scoreVal').textContent=G.score;
   $('#streakVal').textContent=G.streak;
-  if(G.mode==='trenink') $('#leftVal').textContent=`${Math.min(G.count+(G.locked||G.retry?0:1),G.total)}/${G.total}`;
+  if(G.mode!=='sprint') $('#leftVal').textContent=`${Math.min(G.count+(G.locked||G.retry?0:1),G.total)}/${G.total}`;
 }
 function tick(){
   if(!G||G.done||G.mode!=='sprint') return;
@@ -625,27 +782,39 @@ function confetti(){
 function starsHtml(n){return `<div class="stars" aria-label="${n} ze 3 hvězd">${[0,1,2].map(i=>`<span class="${i<n?'':'off'}" style="animation-delay:${i*.18}s">⭐</span>`).join('')}</div>`;}
 function weakRow(){
   const cnt={};
-  G.mistakes.forEach(m=>[m.a,m.b].forEach(x=>{ if(data.rows.includes(x) && x!==1 && x!==10) cnt[x]=(cnt[x]||0)+1; }));
+  G.mistakes.forEach(m=>[m.a,m.b].forEach(x=>{ if(G.rows.includes(x) && x!==1 && x!==10) cnt[x]=(cnt[x]||0)+1; }));
   let best=null; Object.keys(cnt).forEach(x=>{ if(best===null||cnt[x]>cnt[best]||(cnt[x]===cnt[best]&&+x>+best)) best=x; });
   return best?+best:null;
 }
 function endGame(){
   if(!G||G.done) return;
   G.done=true; G.timers.forEach(clearTimeout); closeSheet();
-  const p=player(); let html=''; let stars=1, isRec=false;
+  const p=player(); let html=''; let stars=1, party=false, nextStage=null;
   if(G.mode==='sprint'){
     const k=rowsKey(), prev=p.best[k]||0;
     (p.hist[k]=p.hist[k]||[]).push(G.score);
     if(p.hist[k].length>30) p.hist[k]=p.hist[k].slice(-30);
-    isRec=G.score>prev && G.score>0;
-    if(isRec) p.best[k]=G.score;
-    stars = isRec||G.score===prev ? 3 : (G.score>=prev*.8 ? 2 : 1);
-    html+=`<div class="hello" style="justify-content:center">${owl(84,isRec?'cheer':'happy')}</div>`;
+    party=G.score>prev && G.score>0;
+    if(party) p.best[k]=G.score;
+    stars = party||G.score===prev ? 3 : (G.score>=prev*.8 ? 2 : 1);
+    html+=`<div class="hello" style="justify-content:center">${owl(84,party?'cheer':'happy')}</div>`;
     html+=starsHtml(stars);
-    if(isRec) html+=`<div class="stamp">Nový rekord!</div>`+(prev?`<p class="res-note">O ${G.score-prev} bodů víc než minule!</p>`:`<p class="res-note">Tvůj první rekord!</p>`);
+    if(party) html+=`<div class="stamp">Nový rekord!</div>`+(prev?`<p class="res-note">O ${G.score-prev} bodů víc než minule!</p>`:`<p class="res-note">Tvůj první rekord!</p>`);
     else if(G.score===prev) html+=`<p class="res-note">Vyrovnal/a jsi svůj rekord!</p>`;
     else html+=`<p class="res-note">Rekord je ${prev}. Chybí ti ${prev-G.score} bodů, příště to dáš!</p>`;
     html+=`<div class="res-score">${G.score}</div><div class="res-unit">bodů, ${rowsLabel()}</div>`;
+  } else if(G.mode==='lekce'){
+    const st=PATH[G.stage], pass=G.correct>=need(st), s=(p.path=p.path||{}), was=s[st.id]||{};
+    stars = G.correct===G.total?3 : pass?2 : 1;
+    s[st.id]={done:!!was.done||pass, stars:Math.max(was.stars||0,pass?stars:0), best:Math.max(was.best||0,G.correct)};
+    party=pass;
+    html+=`<div class="hello" style="justify-content:center">${owl(84,pass?'cheer':'happy')}</div>`+starsHtml(stars);
+    if(pass){
+      html+=`<div class="stamp">${st.id==='fin'?'Násobilka zvládnutá!':'Lekce splněná!'}</div>`;
+      if(G.stage+1<PATH.length){ nextStage=G.stage+1; html+=`<p class="res-note">Odemkla se další lekce: ${PATH[nextStage].title} ${PATH[nextStage].em}</p>`; }
+      else html+=`<p class="res-note">Prošel/prošla jsi celou cestou! 🎉</p>`;
+    } else html+=`<p class="res-note">Na splnění potřebuješ ${need(st)} z ${G.total} napoprvé. Zkus to ještě jednou, jde ti to čím dál líp!</p>`;
+    html+=`<div class="res-score">${G.correct}/${G.total}</div><div class="res-unit">hned napoprvé</div>`;
   } else {
     stars = G.correct>=17?3 : G.correct>=10?2 : 1;
     html+=`<div class="hello" style="justify-content:center">${owl(84,stars===3?'cheer':'happy')}</div>`;
@@ -660,27 +829,36 @@ function endGame(){
   if(list.length){
     html+=`<div class="block mist"><h2>Tyhle si ještě procvičíme</h2><ul>${list.map(m=>`<li>${m.a} × ${m.b} = ${m.a*m.b}</li>`).join('')}</ul></div>`;
   } else if(G.correct){
-    html+=`<div class="block mist"><h2>Ani jedna chyba! 🎉</h2><p>Zkus přidat další řadu, nebo si dej závod.</p></div>`;
+    html+=`<div class="block mist"><h2>Ani jedna chyba! 🎉</h2><p>${G.mode==='lekce'?'Jedeš jako sova v noci.':'Zkus přidat další řadu, nebo si dej závod.'}</p></div>`;
   }
-  const wr=weakRow();
-  if(wr && G.wrong>=3 && data.rows.length>1){
+  const wr=G.mode==='lekce'?null:weakRow();
+  if(wr && G.wrong>=3 && G.rows.length>1){
     html+=`<div class="block mist" style="background:var(--l2)"><h2>Tip od sovy Míny</h2><p style="color:var(--ink)">Nejvíc chyb bylo v řadě ×${wr}. Potrénuj ji chvíli samotnou a pak se vrať.</p>
       <button class="btn yellow" id="trainRow" style="margin-top:10px;width:100%">Trénovat řadu ×${wr}</button></div>`;
   }
   save();
   $('#resBody').innerHTML=html;
+  const nb=$('#nextBtn'), ab=$('#againBtn');
+  nb.hidden=nextStage===null;
+  if(nextStage!==null){ nb.textContent=`Další lekce: ${PATH[nextStage].title} ${PATH[nextStage].em}`; nb.onclick=()=>openLesson(nextStage); }
+  ab.textContent=G.mode==='lekce'?'Zopakovat lekci':'Hrát znovu';
+  ab.className=nextStage!==null?'btn ghost':'btn go big';
+  $('#homeBtn').textContent=G.mode==='lekce'?'Zpět na cestu':'Zpět na začátek';
   show('results');
-  const tb=$('#trainRow'); if(tb) tb.onclick=()=>{data.rows=[wr]; data.mode='trenink'; save(); startGame();};
-  if(isRec){confetti(); beep('rec');}
+  const tb=$('#trainRow'); if(tb) tb.onclick=()=>{data.rows=[wr]; data.mode='trenink'; save(); startGame({mode:'trenink',rows:[wr]});};
+  if(party){confetti(); beep('rec');}
 }
 
 /* ---------- events ---------- */
 $('#addPlayer').onclick=addPlayer;
 $('#nameInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault(); addPlayer();}});
-$('#startBtn').onclick=startGame;
-$('#againBtn').onclick=startGame;
+$('#startBtn').onclick=()=>startGame();
+$('#againBtn').onclick=()=>startGame(G&&G.opts);
 $('#homeBtn').onclick=()=>{renderHome(); show('home');};
 $('#quitBtn').onclick=()=>{if(G){G.done=true; G.timers.forEach(clearTimeout);} closeSheet(); renderHome(); show('home');};
+$('#hintBtn').onclick=hint;
+$('#lesBtn').onclick=lessonNext;
+$('#lesBack').onclick=()=>{renderHome(); show('home');};
 $('#soundBtn').onclick=()=>{data.sound=!data.sound; save(); renderSound();};
 $('#sheetBtn').onclick=sheetAction;
 document.addEventListener('keydown',e=>{
