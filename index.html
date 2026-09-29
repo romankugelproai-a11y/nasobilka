@@ -467,18 +467,35 @@ function addPlayer(){
 function show(id){['home','lesson','game','results'].forEach(s=>$('#'+s).hidden=s!==id); window.scrollTo(0,0);}
 
 /* ---------- sound ---------- */
+/* Prohlížeče (hlavně Safari na iPhonu) pouštějí zvuk jen z kontextu probuzeného dotykem,
+   a po přepnutí do jiné aplikace ho znovu uspí. Proto se kontext při každém dotyku probouzí
+   a přehraje se do něj ticho. audioSession 'playback' = zvuk hraje i při ztlumeném iPhonu. */
 let ac;
+try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){}
+function audio(){
+  try{
+    if(!ac){ const C=window.AudioContext||window.webkitAudioContext; if(!C) return null; ac=new C(); }
+    if(ac.state!=='running') ac.resume().catch(()=>{});
+    return ac;
+  }catch(e){ return null; }
+}
+function unlockAudio(){
+  if(!data.sound) return;
+  const a=audio(); if(!a) return;
+  try{ const s=a.createBufferSource(); s.buffer=a.createBuffer(1,1,22050); s.connect(a.destination); s.start(0); }catch(e){}
+}
+['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,unlockAudio,{capture:true,passive:true}));
 function beep(kind){
   if(!data.sound) return;
+  const a=audio(); if(!a) return;
   try{
-    ac=ac||new (window.AudioContext||window.webkitAudioContext)();
-    const t=ac.currentTime;
+    const t=a.currentTime+.02;
     const notes = kind==='ok'?[660,990] : kind==='rec'?[523,659,784,1047] : [330,262];
     notes.forEach((fr,i)=>{
-      const o=ac.createOscillator(), g=ac.createGain(), s=t+i*.09;
+      const o=a.createOscillator(), g=a.createGain(), s=t+i*.09;
       o.type='sine'; o.frequency.value=fr;
-      g.gain.setValueAtTime(.0001,s); g.gain.exponentialRampToValueAtTime(.13,s+.01); g.gain.exponentialRampToValueAtTime(.0001,s+.2);
-      o.connect(g); g.connect(ac.destination); o.start(s); o.stop(s+.25);
+      g.gain.setValueAtTime(.0001,s); g.gain.exponentialRampToValueAtTime(.25,s+.01); g.gain.exponentialRampToValueAtTime(.0001,s+.2);
+      o.connect(g); g.connect(a.destination); o.start(s); o.stop(s+.25);
     });
   }catch(e){}
 }
@@ -860,7 +877,7 @@ $('#quitBtn').onclick=()=>{if(G){G.done=true; G.timers.forEach(clearTimeout);} c
 $('#hintBtn').onclick=hint;
 $('#lesBtn').onclick=lessonNext;
 $('#lesBack').onclick=()=>{renderHome(); show('home');};
-$('#soundBtn').onclick=()=>{data.sound=!data.sound; save(); renderSound();};
+$('#soundBtn').onclick=()=>{data.sound=!data.sound; save(); renderSound(); if(data.sound){unlockAudio(); beep('ok');}};
 $('#sheetBtn').onclick=sheetAction;
 document.addEventListener('keydown',e=>{
   if($('#game').hidden||!G||G.done) return;
