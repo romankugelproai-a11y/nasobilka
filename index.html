@@ -95,7 +95,7 @@ input{flex:1; min-width:0; font:inherit; font-size:1.2rem; padding:8px 14px; bor
 .legend i{display:inline-block; width:16px; height:16px; border-radius:5px; vertical-align:-3px; margin-right:5px}
 
 /* game */
-#game{display:flex; flex-direction:column; min-height:calc(100vh - 40px)}
+#game{display:flex; flex-direction:column; min-height:calc(100vh - 54px); min-height:calc(100dvh - 54px)}
 .hud{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
 .pill{background:var(--card); border:3px solid var(--edge); border-radius:16px; text-align:center; padding:4px 2px; box-shadow:0 3px 0 var(--edge)}
 .pill .lab{display:block; font-size:.9rem; color:var(--soft)}
@@ -122,25 +122,25 @@ input{flex:1; min-width:0; font:inherit; font-size:1.2rem; padding:8px 14px; bor
 
 /* explanation sheet */
 .shade{position:fixed; inset:0; background:rgba(20,30,60,.45); z-index:10}
-.sheet{position:fixed; left:0; right:0; bottom:0; z-index:11; max-width:560px; margin:0 auto; max-height:88vh; overflow-y:auto;
+.sheet{position:fixed; left:0; right:0; bottom:0; z-index:11; max-width:560px; margin:0 auto; max-height:92vh; max-height:92dvh; overflow-y:auto;
   background:var(--card); color:var(--ink); border:4px solid var(--edge); border-bottom:0; border-radius:28px 28px 0 0;
   padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px)); animation:up .35s cubic-bezier(.2,1.2,.4,1)}
 @keyframes up{0%{transform:translateY(100%)}100%{transform:translateY(0)}}
-.sheet .hello{margin:0 0 12px}
-.rule{background:var(--sun); color:var(--on); border:3px solid var(--edge); border-radius:16px; padding:10px 14px; font-size:1.3rem; font-weight:600; text-align:center; line-height:1.25}
-.dots-wrap{display:flex; flex-direction:column; align-items:center; margin:14px 0 4px}
-.dots{display:grid; gap:4px}
-.dot{width:clamp(14px,4.4vw,22px); aspect-ratio:1; border-radius:50%}
+.sheet .hello{margin:0 0 8px}
+.rule{background:var(--sun); color:var(--on); border:3px solid var(--edge); border-radius:16px; padding:8px 12px; font-size:1.15rem; font-weight:600; text-align:center; line-height:1.25}
+.dots-wrap{display:flex; flex-direction:column; align-items:center; margin:10px 0 2px}
+.dots{display:grid; gap:3px}
+.dot{width:var(--dot,18px); aspect-ratio:1; border-radius:50%}
 .dot.a{background:var(--blue)}
 .dot.b{background:var(--orange)}
 .dot.f{background:var(--empty); border:2px dashed var(--soft)}
 .dot.x{background:var(--l1); position:relative}
 .dot.x::after{content:"✕"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--coral); font-weight:700; font-size:.8em}
-.dots-cap{font-size:1rem; color:var(--soft); margin-top:6px; text-align:center}
-.steps{display:flex; flex-direction:column; gap:8px; margin:12px 0}
-.step{display:flex; align-items:center; gap:10px; font-size:1.55rem; font-weight:600}
-.step .n{flex:0 0 36px; height:36px; border-radius:50%; background:var(--grape); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.1rem; border:3px solid var(--edge)}
-.result{text-align:center; font-size:2.6rem; font-weight:700; background:var(--l3); color:var(--ink); border:3px solid var(--edge); border-radius:18px; padding:6px; margin:4px 0 14px}
+.dots-cap{font-size:.95rem; color:var(--soft); margin-top:4px; text-align:center}
+.steps{display:flex; flex-direction:column; gap:5px; margin:8px 0}
+.step{display:flex; align-items:center; gap:10px; font-size:1.3rem; font-weight:600}
+.step .n{flex:0 0 30px; height:30px; border-radius:50%; background:var(--grape); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.1rem; border:3px solid var(--edge)}
+.result{text-align:center; font-size:2rem; font-weight:700; background:var(--l3); color:var(--ink); border:3px solid var(--edge); border-radius:16px; padding:2px 6px; margin:2px 0 10px}
 
 /* path */
 .path-sub{color:var(--soft); font-size:1.05rem; margin:-4px 0 12px}
@@ -157,9 +157,31 @@ input{flex:1; min-width:0; font:inherit; font-size:1.2rem; padding:8px 14px; bor
 @keyframes nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 .free-h{margin:26px 0 4px}
 .free-sub{margin:0 0 10px}
-.les-kicker{font-weight:700; color:var(--soft); font-size:1.1rem; margin:4px 0 0}
-#lesBack{display:block}
-.les-new{margin-top:12px; font-size:1.1rem; color:var(--soft); text-align:center}
+.les-top{display:flex; justify-content:space-between; align-items:center; gap:8px}
+.les-kicker{font-weight:700; color:var(--soft); font-size:1.05rem; margin:0}
+#lesBack{margin:0; font-size:1rem}
+#lesson .hello{margin:6px 0 10px}
+#lesson .bubble{font-size:1.05rem; padding:8px 12px}
+#lesCard{padding:12px; margin-bottom:12px}
+.les-new{margin-top:8px; font-size:.95rem; color:var(--soft); text-align:center; line-height:1.3}
+#lesBtn,#sheetBtn{position:sticky; bottom:8px; z-index:2}
+#sheetBtn{bottom:0}
+/* nízké displeje (menší iPhony, Android s lištou) */
+@media (max-height:720px){
+  .problem{font-size:clamp(2.8rem,14vw,4.6rem)}
+  .feedback{min-height:2.2em; font-size:1.4rem; padding:2px 0}
+  .tag{margin-top:8px}
+  .key{min-height:54px; font-size:1.8rem}
+  .pad{gap:8px}
+  .rule{font-size:1.05rem; padding:6px 10px}
+  .step{font-size:1.15rem}
+  .step .n{flex-basis:26px; height:26px; font-size:.95rem}
+  .steps{gap:4px; margin:6px 0}
+  .result{font-size:1.6rem; margin-bottom:6px}
+  .dots-cap{font-size:.9rem}
+  #lesson .hello{margin:4px 0 8px}
+}
+.app:has(#lesson:not([hidden])){padding-bottom:12px}
 .gamelinks{display:flex; justify-content:center; gap:18px}
 .gamelinks .link{margin:14px 0 0}
 
@@ -248,7 +270,7 @@ input{flex:1; min-width:0; font:inherit; font-size:1.2rem; padding:8px 14px; bor
 </section>
 
 <section id="lesson" hidden>
-  <p class="les-kicker" id="lesKicker"></p>
+  <div class="les-top"><p class="les-kicker" id="lesKicker"></p><button id="lesBack" class="link">← Zpět na cestu</button></div>
   <div class="hello"><div id="lesOwl"></div><div class="bubble" id="lesBubble"></div></div>
   <div class="block" id="lesCard">
     <div class="rule" id="lesRule"></div>
@@ -260,7 +282,6 @@ input{flex:1; min-width:0; font:inherit; font-size:1.2rem; padding:8px 14px; bor
     <p class="les-new" id="lesNew"></p>
   </div>
   <button id="lesBtn" class="btn go big"></button>
-  <button id="lesBack" class="link">Zpět na cestu</button>
 </section>
 
 <section id="game" hidden>
@@ -535,6 +556,7 @@ function paintExplain(px,e,a,b,hint){
   $('#'+px+'Rule').textContent=e.rule;
   const d=$('#'+px+'Dots');
   d.style.gridTemplateColumns=`repeat(${e.cols.length},auto)`;
+  d.style.setProperty('--dot',Math.max(10,Math.min(22,Math.floor(280/e.cols.length)-3,Math.floor((innerHeight<720?88:120)/e.o)-3))+'px');
   let h=''; for(let r=0;r<e.o;r++) for(const c of e.cols) h+=`<div class="dot ${c}"></div>`;
   d.innerHTML=h;
   $('#'+px+'Cap').textContent=`${e.o} ${rad(e.o)} po ${e.n}. ${e.cap}`;
@@ -546,7 +568,7 @@ const CHEER=['Nevadí! Na chybách se učíme. Koukej:','To je v pohodě, tenhle
 function openSheet(kind){
   const {a,b}=G.q, e=explain(a,b,G.focus);
   G.sheet=kind; G.paused=true; G.pauseStart=performance.now();
-  $('#sheetOwl').innerHTML=owl(66,'think');
+  $('#sheetOwl').innerHTML=owl(56,'think');
   $('#sheetBubble').textContent = kind==='learn' ? CHEER[Math.floor(Math.random()*CHEER.length)]
     : kind==='hint' ? 'Tady je fígl. Výsledek už dopočítáš sám/sama:'
     : 'Ještě ne, ale nevzdávej to. Tenhle příklad ti brzy připomenu.';
@@ -620,7 +642,7 @@ function openLesson(i){
   const st=PATH[i];
   L={i,step:0,ex:st.review?[]:st.rows.length>1?st.rows.map(r=>[EX[r][0],r]):EX[st.rows[0]].map(o=>[o,st.rows[0]])};
   $('#lesKicker').textContent=`Lekce ${i+1} z ${PATH.length}`;
-  $('#lesOwl').innerHTML=owl(72,'happy');
+  $('#lesOwl').innerHTML=owl(56,'happy');
   if(st.review){
     $('#lesBubble').textContent = st.id==='fin'
       ? 'Velké finále! Namíchám ti příklady ze všech řad. Ukaž, co všechno už umíš.'
@@ -639,8 +661,8 @@ function paintLessonEx(){
   paintExplain('les',e,o,r,false);
   const nf=newFacts(L.i), tot=covered(rowsUpTo(L.i+1)).size;
   $('#lesNew').textContent =
-    (L.i===0?'':nf===1?'Nový je tu jen jediný příklad, ostatní už znáš (3 × 7 je totéž co 7 × 3). '
-      :`Nových příkladů je tu jen ${nf}, ostatní už znáš (3 × 7 je totéž co 7 × 3). `)
+    (L.i===0?'':nf===1?'Nový je jen jeden příklad, zbytek už znáš (3 × 7 = 7 × 3). '
+      :`Nových je jen ${nf}, zbytek už znáš (3 × 7 = 7 × 3). `)
     + (tot===55?'Pak budeš umět celou násobilku!':`Pak budeš znát ${tot} z 55 příkladů.`);
   $('#lesBtn').textContent = L.step>=L.ex.length-1 ? 'Jdu to zkusit!' : 'Další příklad →';
 }
