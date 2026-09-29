@@ -212,6 +212,7 @@ input{flex:1; min-width:0; font:inherit; font-size:1.2rem; padding:8px 14px; bor
       <span><i style="background:var(--l2)"></i>Učím se</span>
       <span><i style="background:var(--l3)"></i>Umím!</span>
     </div>
+    <p class="legend">„Umím“ = správně a do 3 vteřin, aspoň ve dvou různých dnech. Co dlouho neopakuješ, sova ti zase připomene.</p>
   </div>
 </section>
 
@@ -222,7 +223,7 @@ input{flex:1; min-width:0; font:inherit; font-size:1.2rem; padding:8px 14px; bor
     <div class="pill"><span class="lab">🔥 Série</span><span class="val" id="streakVal">0</span></div>
   </div>
   <div class="timebar" id="timebar"><div class="timefill" id="timefill"></div></div>
-  <div class="tag" id="retryTag">Zkus to znovu sám/sama</div>
+  <div class="tag" id="retryTag">🦉 Vracíme se k tomuhle, zvládneš ho?</div>
   <div class="problem" aria-live="polite"><span id="qa">7</span> × <span id="qb">8</span> = <span id="qans" class="ans">&nbsp;</span></div>
   <div id="feedback" class="feedback" aria-live="polite"></div>
   <div class="pad" id="pad"></div>
@@ -269,10 +270,20 @@ function player(){
 }
 const rowsKey=()=>[...data.rows].sort((a,b)=>a-b).join(',');
 const factKey=(a,b)=>Math.min(a,b)+'x'+Math.max(a,b);
+/* Rozložené opakování (Leitner): box 0–5, interval ve dnech, za který má příklad přijít znovu.
+   Box se posune jen při správné odpovědi napoprvé, když už uplynul interval, takže víc
+   správných odpovědí v jeden den příklad neposune víc než jednou. */
+const IV=[0,1,3,7,14,30];
+const FAST=3000;   // automatické zvládnutí: průměrná odpověď do 3 s
+function dayNum(ts){const d=new Date(ts); return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);}
+const today=()=>dayNum(Date.now());
+const since=f=>f&&f.last?today()-dayNum(f.last):Infinity;
+const isDue=f=>!!(f && f.box>0 && since(f)>=IV[f.box]);
+const lapsed=f=>since(f)>IV[(f&&f.box)||0]*2+1;   // dlouho neopakováno → zpět do „učím se“
 function level(f){
   if(!f) return 0;
-  if(f.s>=3 && f.t && f.t<6000) return 3;
   if(f.s===0 && f.w>0) return 1;
+  if((f.box||0)>=2 && f.s>=3 && f.t && f.t<FAST && !lapsed(f)) return 3;
   return 2;
 }
 function rowsLabel(){
@@ -363,7 +374,7 @@ function spark(hist,best){
 function renderRecord(){
   const box=$('#recordBox'), p=player();
   if(data.mode==='trenink'){
-    box.innerHTML='<p><b>🎯 Trénink</b><br>Když se spleteš, sova Mína ti ukáže, jak na to, a pak to zkusíš znovu.</p>'; return;
+    box.innerHTML='<p><b>🎯 Trénink</b><br>Když se spleteš, sova Mína ti ukáže, jak na to, a za chvilku ti ten příklad dá znovu.</p>'; return;
   }
   if(!p){box.innerHTML='<p>Přidej své jméno, ať se ti ukládá rekord.</p>'; return;}
   const k=rowsKey(), best=p.best[k], hist=(p.hist[k]||[]).slice(-10);
@@ -457,7 +468,7 @@ function openSheet(kind){
   $('#sheetCap').textContent=`${e.o} řad po ${e.n}. ${e.cap}`;
   $('#sheetSteps').innerHTML=e.steps.map((s,i)=>`<div class="step"><span class="n">${i+1}</span><span>${esc(s)}</span></div>`).join('');
   $('#sheetResult').textContent=`${a} × ${b} = ${a*b}`;
-  $('#sheetBtn').textContent = kind==='learn' ? 'Zkusím to sám' : 'Pokračovat';
+  $('#sheetBtn').textContent = kind==='learn' ? 'Jasně! Za chvilku to dám sám/sama' : 'Pokračovat';
   $('#shade').hidden=false; $('#sheet').hidden=false; $('#sheet').scrollTop=0;
   setTimeout(()=>$('#sheetBtn').focus(),50);
 }
@@ -467,12 +478,13 @@ function closeSheet(){
 }
 function sheetAction(){
   if(!G||!G.sheet) return;
-  const kind=G.sheet; G.sheet=null; closeSheet();
-  if(kind==='learn'){
-    G.retry=true; G.input=''; G.locked=false; G.qStart=performance.now();
-    const ans=$('#qans'); ans.className='ans'; ans.innerHTML='&nbsp;';
-    $('#feedback').innerHTML=''; $('#retryTag').classList.add('show');
-  } else afterAnswer();
+  G.sheet=null; closeSheet();
+  afterAnswer();
+}
+/* Po chybě se příklad nevrací hned (to by bylo opisování z krátkodobé paměti),
+   ale za 3–5 příkladů, kdy si ho dítě musí opravdu vybavit. Nejvýš dvakrát. */
+function requeue(a,b,tries){
+  G.requeue.push({a,b,tries,at:G.count+3+Math.floor(Math.random()*3)});
 }
 
 /* ---------- game ---------- */
@@ -492,7 +504,7 @@ function buildPad(){
 function startGame(){
   if(!data.current && !addPlayer()){ show('home'); $('#nameErr').hidden=false; $('#nameInput').focus(); return; }
   G={mode:data.mode,score:0,streak:0,bestStreak:0,correct:0,wrong:0,learned:0,mistakes:[],count:0,total:20,
-     input:'',locked:false,retry:false,sheet:null,paused:false,last:null,timers:[],t0:performance.now(),dur:60000,done:false};
+     input:'',locked:false,retry:false,tries:0,requeue:[],sheet:null,paused:false,last:null,timers:[],t0:performance.now(),dur:60000,done:false};
   show('game');
   $('#timebar').hidden=G.mode!=='sprint';
   $('#leftLab').textContent=G.mode==='sprint'?'⏱ Čas':'🎯 Příklad';
@@ -504,9 +516,10 @@ function pick(){
   const p=player(), pool=[];
   data.rows.forEach(r=>{
     for(let m=1;m<=10;m++){
-      const L=level(p.facts[factKey(r,m)]);
-      let w = L===1?6 : L===3?(G.mode==='trenink'?.5:1) : 3;
-      if(G.last && factKey(r,m)===factKey(G.last.a,G.last.b)) w=0;
+      const k=factKey(r,m), f=p.facts[k], L=level(f), due=isDue(f);
+      let w = L===1?6 : L===0?3 : L===3?(due?3:(G.mode==='trenink'?.5:1)) : (due?4:3);
+      if(G.last && k===factKey(G.last.a,G.last.b)) w=0;
+      if(G.requeue.some(q=>factKey(q.a,q.b)===k)) w=0;
       pool.push({r,m,w});
     }
   });
@@ -518,11 +531,15 @@ function pick(){
 }
 function next(){
   if(!G||G.done) return;
-  G.q=pick(); G.last=G.q; G.input=''; G.locked=false; G.retry=false; G.qStart=performance.now();
+  const i=G.requeue.findIndex(r=>r.at<=G.count);
+  let retry=false;
+  if(i>=0){ const r=G.requeue.splice(i,1)[0]; G.q={a:r.a,b:r.b}; G.tries=r.tries; retry=true; }
+  else G.q=pick();
+  G.last=G.q; G.input=''; G.locked=false; G.retry=retry; G.qStart=performance.now();
   $('#qa').textContent=G.q.a; $('#qb').textContent=G.q.b;
   const ans=$('#qans'); ans.className='ans'; ans.innerHTML='&nbsp;';
   const fb=$('#feedback'); fb.className='feedback'; fb.innerHTML='';
-  $('#retryTag').classList.remove('show');
+  $('#retryTag').classList.toggle('show',retry);
   updateHud();
 }
 function press(d){
@@ -546,8 +563,10 @@ function submit(){
   if(!G.retry) G.count++;
   if(ok){
     let pts;
-    if(G.retry){ pts=5; G.learned++; fb.textContent=`+5 Super, teď už to víš!`; }
+    if(G.retry){ pts=5; G.learned++; f.c++; f.s++; fb.textContent=`+5 Super, zapamatoval/a sis to!`; }
     else{
+      if(!f.box || since(f)>=IV[f.box]) f.box=Math.min((f.box||0)+1,5);
+      f.last=Date.now();
       f.c++; f.s++; f.t=f.t?Math.round(f.t*.6+dt*.4):Math.round(dt);
       G.streak++; G.bestStreak=Math.max(G.bestStreak,G.streak); G.correct++;
       pts=10+Math.min(G.streak-1,10)*2;
@@ -559,24 +578,30 @@ function submit(){
     later(afterAnswer,G.retry?900:(G.mode==='sprint'?350:600));
   } else {
     ans.classList.add('bad'); beep('bad');
+    f.w++; f.s=0; f.box=0; G.streak=0;
     if(!G.retry){
-      f.w++; f.s=0; G.wrong++; G.streak=0; G.mistakes.push({a,b});
+      G.wrong++; G.mistakes.push({a,b}); requeue(a,b,1);
       save(); updateHud();
       later(()=>openSheet('learn'),500);
     } else {
+      if(G.tries<2) requeue(a,b,G.tries+1);
+      save(); updateHud();
       later(()=>openSheet('reveal'),500);
     }
   }
 }
 function afterAnswer(){
   if(!G||G.done) return;
-  if(G.mode==='trenink' && G.count>=G.total){endGame(); return;}
+  if(G.mode==='trenink' && G.count>=G.total){
+    if(!G.requeue.length){endGame(); return;}
+    G.requeue.forEach(r=>r.at=0);   // na konci tréninku dojet rozpracované opravy
+  }
   next();
 }
 function updateHud(){
   $('#scoreVal').textContent=G.score;
   $('#streakVal').textContent=G.streak;
-  if(G.mode==='trenink') $('#leftVal').textContent=`${Math.min(G.count+(G.locked?0:1),G.total)}/${G.total}`;
+  if(G.mode==='trenink') $('#leftVal').textContent=`${Math.min(G.count+(G.locked||G.retry?0:1),G.total)}/${G.total}`;
 }
 function tick(){
   if(!G||G.done||G.mode!=='sprint') return;
